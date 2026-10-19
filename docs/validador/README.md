@@ -21,6 +21,8 @@ Processo de revisão: cruzar **SPEC**, **diff** e **padrões** do projeto Java/S
 | [`revisao.md`](revisao.md) | Tipo de atividade → doc + vizinho (base) |
 | [`nao-reportar.md`](nao-reportar.md) | Ruído |
 | [`review-checklist-api.md`](review-checklist-api.md) | Checklist por área |
+| [`wsl-windows-runner.md`](wsl-windows-runner.md) | WSL no Windows (runner self-hosted + SDK cloud) |
+| [`review-por-pr.md`](review-por-pr.md) | PR, CI e comentário na PR |
 
 ```text
 /api-validator docs/SPEC.md — escopo ampliado, validador inteligente

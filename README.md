@@ -85,6 +85,14 @@ Abra `.api-validator-review/pr-430-prompt.md` no Cursor ou envie ao agente na nu
 
 No **esimples-api**: workflow `.github/workflows/api-validator-pr.yml` + secret `CURSOR_API_KEY`. Usa `scripts/ci-api-validator.py` deste repositório. Detalhes: `docs/validador/review-por-pr.md`.
 
+**Runner self-hosted no Windows:** instale o WSL antes (venv + `cursor-sdk`):
+
+```powershell
+.\scripts\install-wsl-prereqs.ps1
+```
+
+Guia: [`docs/validador/wsl-windows-runner.md`](docs/validador/wsl-windows-runner.md).
+
 ## Personalização no projeto alvo
 
 | O que | Onde no projeto |
