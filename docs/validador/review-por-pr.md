@@ -122,6 +122,8 @@ No **esimples-api**, workflow `.github/workflows/api-validator-pr.yml`:
 - Eventos: `pull_request` → `opened`, **synchronize** (novo commit), `reopened`.
 - Secret: `CURSOR_API_KEY`.
 - Script: `scripts/ci-api-validator.py` + `scripts/requirements-ci.txt` neste pacote.
+- **Windows / runner sem Bridge:** `CURSOR_VALIDATOR_RUNTIME=cloud` (padrão no Windows). O agente clona a API no GitHub (`GITHUB_SHA` ou `HEAD`); antes da revisão roda `install.sh` do pacote `VALIDATOR_REPO`.
+- **Máquina local:** `git push` da branch antes de `run-api-validator.cmd`.
 - Comentário único na PR (`api-validator`); check falha se conclusão **NÃO APROVÁVEL**.
 
 Setup: ver `esimples-api/.github/workflows/README-api-validator.md`.

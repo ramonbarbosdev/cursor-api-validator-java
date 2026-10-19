@@ -28,7 +28,7 @@ jobs:
 
       - name: Install pacote + stack e-Simples
         run: |
-          ./cursor-api-validator-java/install/install.sh "$(pwd)" java-spring-esimples
+          bash cursor-api-validator-java/install/install.sh "$(pwd)" java-spring-esimples
 
       - name: Diff vs base
         run: |

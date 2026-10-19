@@ -1,24 +1,232 @@
 #!/usr/bin/env python3
-"""Roda o api-validator no CI (somente relatório). Requer CURSOR_API_KEY e install já feito no REPO_ROOT."""
+"""Roda o api-validator (relatorio). CURSOR_API_KEY + install local ou modo cloud."""
 from __future__ import annotations
 
 import os
+import re
 import subprocess
 import sys
 from pathlib import Path
 
-from cursor_sdk import Agent, AgentOptions, CursorAgentError, LocalAgentOptions
+from cursor_sdk import (
+    Agent,
+    AgentOptions,
+    CloudAgentOptions,
+    CloudRepository,
+    CursorAgentError,
+    LocalAgentOptions,
+)
+
+
+def load_env_file(repo_root: Path) -> None:
+    """Carrega .env do projeto (nao sobrescreve variavel ja definida no shell)."""
+    env_file = repo_root / ".env"
+    if not env_file.is_file():
+        return
+    for raw in env_file.read_text(encoding="utf-8").splitlines():
+        line = raw.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        key, value = line.split("=", 1)
+        key = key.strip()
+        value = value.strip().strip('"').strip("'")
+        if key and key not in os.environ:
+            os.environ[key] = value
+
+
+def git_output(root: Path, *args: str) -> str | None:
+    try:
+        return subprocess.check_output(
+            ["git", *args],
+            cwd=root,
+            text=True,
+            stderr=subprocess.DEVNULL,
+        ).strip()
+    except subprocess.CalledProcessError:
+        return None
+
+
+def normalize_github_url(remote: str) -> str:
+    remote = remote.strip()
+    if remote.startswith("https://") or remote.startswith("http://"):
+        return remote.removesuffix(".git")
+    m = re.match(r"git@github\.com:(.+?)(?:\.git)?$", remote)
+    if m:
+        return f"https://github.com/{m.group(1)}"
+    if "/" in remote and not remote.startswith("git"):
+        return f"https://github.com/{remote.removeprefix('/')}".removesuffix(".git")
+    raise ValueError(f"Remote Git nao reconhecido: {remote}")
+
+
+def resolve_api_repo_url(root: Path) -> str:
+    explicit = os.environ.get("GITHUB_REPOSITORY_URL", "").strip()
+    if explicit:
+        return explicit.removesuffix(".git")
+    slug = os.environ.get("GITHUB_REPOSITORY", "").strip()
+    if slug:
+        return f"https://github.com/{slug.removeprefix('/')}"
+    remote = git_output(root, "remote", "get-url", "origin")
+    if not remote:
+        raise RuntimeError(
+            "Defina GITHUB_REPOSITORY ou configure git remote origin para modo cloud."
+        )
+    return normalize_github_url(remote)
+
+
+def validator_repo_url() -> str:
+    raw = os.environ.get(
+        "VALIDATOR_REPO", "ramonbarbosdev/cursor-api-validator-java"
+    ).strip()
+    if raw.startswith("http"):
+        return raw.removesuffix(".git")
+    return f"https://github.com/{raw.removeprefix('/')}".removesuffix(".git")
+
+
+def resolve_starting_ref(root: Path) -> str:
+    for key in ("GITHUB_SHA", "CURSOR_VALIDATOR_STARTING_REF"):
+        val = os.environ.get(key, "").strip()
+        if val:
+            return val
+    head = git_output(root, "rev-parse", "HEAD")
+    if head:
+        return head
+    raise RuntimeError("Nao foi possivel obter SHA/ref para modo cloud.")
+
+
+def resolve_runtime() -> str:
+    explicit = os.environ.get("CURSOR_VALIDATOR_RUNTIME", "").strip().lower()
+    if explicit in ("cloud", "local"):
+        return explicit
+    if sys.platform == "win32" and os.environ.get("CURSOR_VALIDATOR_FORCE_LOCAL") != "1":
+        return "cloud"
+    return "local"
+
+
+def warn_cloud_push(root: Path, starting_ref: str) -> None:
+    branch = git_output(root, "branch", "--show-current")
+    if not branch:
+        return
+    on_origin = git_output(root, "rev-parse", f"origin/{branch}")
+    head = git_output(root, "rev-parse", "HEAD")
+    if not on_origin:
+        print(
+            f"AVISO: branch '{branch}' nao existe em origin. "
+            "O agente cloud clona do GitHub — faca git push antes.",
+            file=sys.stderr,
+        )
+        return
+    if head and on_origin and head != on_origin:
+        print(
+            f"AVISO: HEAD local ({head[:8]}) != origin/{branch} ({on_origin[:8]}). "
+            "Cloud usara starting_ref; push se quiser o commit local na revisao.",
+            file=sys.stderr,
+        )
+    if head and starting_ref == head and on_origin and head != on_origin:
+        print(
+            "Dica: use CURSOR_VALIDATOR_STARTING_REF=origin/<branch> apos push, "
+            "ou push e use o nome da branch como ref.",
+            file=sys.stderr,
+        )
+
+
+def build_prompt(
+    root: Path,
+    base: str,
+    pr_label: str,
+    stat: str,
+    spec_line: str,
+    *,
+    cloud: bool,
+) -> str:
+    agent_rel = ".cursor/agents/api-validator.md"
+    validator_url = validator_repo_url()
+
+    if cloud:
+        prep = f"""Ambiente **cloud**: clone da API no GitHub (starting_ref). Pode haver segundo repo com o pacote validador.
+
+**Obrigatorio antes da revisao** (nao altere src/ nem db/ da aplicacao):
+1. Localize o pacote `cursor-api-validator-java` (segundo repo no ambiente OU `git clone {validator_url} /tmp/cursor-api-validator-java`).
+2. `bash <pacote>/install/install.sh "$(pwd)" java-spring-esimples`
+3. Confirme que existe `{agent_rel}`; leia esse arquivo **inteiro** e siga precedencia, evidencia e veredito.
+4. Use `.cursor/skills/revisao-api/SKILL.md`, `docs/validador/nao-reportar.md` e regras `EV-*` em `.cursor/rules/` quando o diff tocar o assunto.
+
+No **Resumo**, cite **pelo menos dois caminhos de arquivo** presentes no diff vs origin/{base}.
+Achado **Critico**/**Importante**: regra ou doc citada + evidencia (classe/metodo/linha ou trecho).
+"""
+    else:
+        agent_file = root / agent_rel
+        prep = f"""Leia e siga a risca o procedimento em:
+{agent_file}
+
+Tambem use .cursor/skills/revisao-api/SKILL.md e docs/validador/nao-reportar.md quando aplicavel.
+"""
+
+    return f"""Voce e o revisor api-validator do esimples-api (Java Spring Boot).
+
+{prep}
+
+Modo somente leitura na API: NAO altere arquivos de aplicacao (src/, db/, docs/ de dominio).
+
+Escopo: {pr_label}, diff vs origin/{base}.
+{spec_line}
+
+Execute (somente leitura): git fetch origin {base}; git diff --stat origin/{base}...HEAD; git diff origin/{base}...HEAD nos arquivos relevantes.
+
+Saida EXATAMENTE nesta ordem, em portugues: **Resumo**, **Critico**, **Importante**, **Conclusao**.
+Linha final obrigatoria: `Conclusao: NAO APROVAVEL` | `Conclusao: APROVAVEL COM RESSALVAS` | `Conclusao: APROVAVEL` (como em api-validator.md).
+Sem achado: Critico e Importante = "Nenhum."
+
+git diff --stat (referencia local do disparo):
+{stat}
+"""
+
+
+def write_report(root: Path, pr_label: str, base: str, pr: str, body: str) -> Path:
+    report_path = root / "api-validator-report.md"
+    header = f"<!-- api-validator -->\n## API Validator ({pr_label})\n\n"
+    if pr:
+        header += f"_Base: `{base}` · disparo: push na PR_\n\n"
+    report_path.write_text(header + body + "\n", encoding="utf-8")
+    return report_path
 
 
 def main() -> int:
+    root = Path(os.environ.get("REPO_ROOT", ".")).resolve()
+    load_env_file(root)
+
     api_key = os.environ.get("CURSOR_API_KEY", "").strip()
     if not api_key:
-        print("CURSOR_API_KEY não definido.", file=sys.stderr)
+        env_file = root / ".env"
+        if env_file.is_file():
+            has_key = any(
+                ln.strip().startswith("CURSOR_API_KEY=")
+                for ln in env_file.read_text(encoding="utf-8").splitlines()
+                if ln.strip() and not ln.strip().startswith("#")
+            )
+            if not has_key:
+                print(
+                    f".env encontrado em {env_file} mas sem linha CURSOR_API_KEY=...",
+                    file=sys.stderr,
+                )
+            else:
+                print(
+                    "CURSOR_API_KEY esta vazio no .env (valor apos o =).",
+                    file=sys.stderr,
+                )
+        else:
+            print(
+                f"Crie {env_file} com: CURSOR_API_KEY=sua-chave",
+                file=sys.stderr,
+            )
+        print(
+            "Chave: Cursor Settings -> API. GitHub Actions: secret CURSOR_API_KEY.",
+            file=sys.stderr,
+        )
         return 1
 
-    root = Path(os.environ.get("REPO_ROOT", ".")).resolve()
+    runtime = resolve_runtime()
     agent_file = root / ".cursor" / "agents" / "api-validator.md"
-    if not agent_file.is_file():
+    if runtime == "local" and not agent_file.is_file():
         print(f"Falta install do validador: {agent_file}", file=sys.stderr)
         return 1
 
@@ -50,39 +258,68 @@ def main() -> int:
         spec_line = "Sem docs/SPEC.md na branch: gate enxuto (somente git diff vs base)."
 
     model = os.environ.get("CURSOR_VALIDATOR_MODEL", "composer-2.5")
+    prompt = build_prompt(
+        root, base, pr_label, stat, spec_line, cloud=(runtime == "cloud")
+    )
 
-    prompt = f"""Você é o revisor api-validator do esimples-api (Java Spring Boot).
-
-Leia e siga à risca o procedimento, precedência, evidência e formato em:
-{agent_file}
-
-Também use .cursor/skills/revisao-api/SKILL.md e docs/validador/nao-reportar.md quando aplicável.
-
-Modo somente leitura: NÃO altere arquivos.
-
-Escopo: {pr_label}, diff vs origin/{base}.
-{spec_line}
-
-Execute (somente leitura): git status -sb; git diff --stat origin/{base}...HEAD; git diff origin/{base}...HEAD nos arquivos relevantes.
-
-Saída EXATAMENTE nesta ordem, em português: **Resumo**, **Crítico**, **Importante**, **Conclusão**.
-Conclusão: NÃO APROVÁVEL | APROVÁVEL COM RESSALVAS | APROVÁVEL (regras do agente).
-Sem achado: Crítico e Importante = "Nenhum."
-
-git diff --stat (referência):
-{stat}
-"""
-
-    report_path = root / "api-validator-report.md"
-    try:
-        result = Agent.prompt(
-            prompt,
-            AgentOptions(
-                api_key=api_key,
-                model=model,
-                local=LocalAgentOptions(cwd=str(root)),
+    if runtime == "cloud":
+        try:
+            repo_url = resolve_api_repo_url(root)
+        except (RuntimeError, ValueError) as e:
+            print(str(e), file=sys.stderr)
+            return 1
+        starting_ref = resolve_starting_ref(root)
+        warn_cloud_push(root, starting_ref)
+        pr_url = os.environ.get("PR_HTML_URL", "").strip()
+        if not pr_url and pr and os.environ.get("GITHUB_REPOSITORY"):
+            pr_url = (
+                f"https://github.com/{os.environ['GITHUB_REPOSITORY']}/pull/{pr}"
+            )
+        print(
+            f"Modo cloud: {repo_url} @ {starting_ref[:12]}...",
+            file=sys.stderr,
+        )
+        v_url = validator_repo_url()
+        v_ref = os.environ.get("VALIDATOR_REF", "main").strip() or "main"
+        options = AgentOptions(
+            api_key=api_key,
+            model=model,
+            cloud=CloudAgentOptions(
+                repos=[
+                    CloudRepository(
+                        url=repo_url,
+                        starting_ref=starting_ref,
+                        pr_url=pr_url or None,
+                    ),
+                    CloudRepository(url=v_url, starting_ref=v_ref),
+                ],
+                skip_reviewer_request=True,
+                auto_create_pr=False,
             ),
         )
+    else:
+        if sys.platform == "win32" and os.environ.get("CURSOR_VALIDATOR_FORCE_LOCAL") != "1":
+            print(
+                "No Windows use CURSOR_VALIDATOR_RUNTIME=cloud (padrao) ou "
+                "CURSOR_VALIDATOR_FORCE_LOCAL=1 para tentar local.",
+                file=sys.stderr,
+            )
+            return 3
+        options = AgentOptions(
+            api_key=api_key,
+            model=model,
+            local=LocalAgentOptions(cwd=str(root)),
+        )
+
+    try:
+        result = Agent.prompt(prompt, options)
+    except OSError as e:
+        print(f"SDK local falhou: {e}", file=sys.stderr)
+        print(
+            "Tente CURSOR_VALIDATOR_RUNTIME=cloud ou /api-validator no Cursor.",
+            file=sys.stderr,
+        )
+        return 3
     except CursorAgentError as e:
         print(f"Falha ao iniciar agente: {e}", file=sys.stderr)
         return 1
@@ -93,13 +330,11 @@ git diff --stat (referência):
 
     body = (result.result or "").strip()
     if not body:
-        body = "_Validador não retornou texto. Ver logs do workflow._"
+        body = "_Validador nao retornou texto. Ver logs do workflow._"
 
-    header = f"<!-- api-validator -->\n## API Validator ({pr_label})\n\n"
-    if pr:
-        header += f"_Base: `{base}` · disparo: push na PR_\n\n"
-    report_path.write_text(header + body + "\n", encoding="utf-8")
+    report_path = write_report(root, pr_label, base, pr, body)
     print(body)
+    print(f"\nSalvo em: {report_path}", file=sys.stderr)
     return 0
 
 
