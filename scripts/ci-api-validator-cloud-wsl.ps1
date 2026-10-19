@@ -60,12 +60,18 @@ $bash = @"
 set -euo pipefail
 export $exportLine
 cd $(Bash-SingleQuote $repoWsl)
-if ! python3 -m pip --version >/dev/null 2>&1; then
-  echo "WSL sem pip. Rode: sudo apt update && sudo apt install -y python3-pip" >&2
-  exit 1
+VENV="${'$'}{HOME}/.cache/api-validator-ci-venv"
+if [[ ! -x "${'$'}VENV/bin/python" ]]; then
+  if ! python3 -m venv "${'$'}VENV" 2>/dev/null; then
+    echo "WSL: nao foi possivel criar venv. Rode:" >&2
+    echo "  sudo apt update && sudo apt install -y python3-venv python3-pip" >&2
+    exit 1
+  fi
 fi
-python3 -m pip install -q -r $(Bash-SingleQuote "$valWsl/scripts/requirements-ci.txt")
-python3 $(Bash-SingleQuote "$valWsl/scripts/ci-api-validator.py")
+PY="${'$'}VENV/bin/python"
+"${'$'}PY" -m pip install -q -U pip
+"${'$'}PY" -m pip install -q -r $(Bash-SingleQuote "$valWsl/scripts/requirements-ci.txt")
+"${'$'}PY" $(Bash-SingleQuote "$valWsl/scripts/ci-api-validator.py")
 "@
 
 $tempDir = if ($env:RUNNER_TEMP) { $env:RUNNER_TEMP } else { [System.IO.Path]::GetTempPath() }
