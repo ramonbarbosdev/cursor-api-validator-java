@@ -124,6 +124,6 @@ Estado por módulo: [`carga-faixa-manifest.json`](carga-faixa-manifest.json) —
 | Este documento | **Padrão C** na listagem + regras de filho agregado |
 | [`mestre-detalhe-conta-receber.md`](mestre-detalhe-conta-receber.md) | Mestre, totais, aba, escrita |
 | `/api-validator` | SPEC + diff; vizinho `ContaReceber` / `ContaPagar` |
-| [`../validador/review-checklist-api.md`](../validador/review-checklist-api.md) | Checklist operacional |
+| [`../validador/README.md`](../validador/README.md) | Índice do validador e checklist |
 
 Atividade piloto listagem: [`../SPEC-conta-pagar-listagem-faixa-c.md`](../SPEC-conta-pagar-listagem-faixa-c.md).
