@@ -82,6 +82,36 @@ def validator_repo_url() -> str:
     return f"https://github.com/{raw.removeprefix('/')}".removesuffix(".git")
 
 
+def resolve_validator_starting_ref() -> str | None:
+    """SHA ou ref do pacote validador para segundo repo cloud (opcional)."""
+    explicit = os.environ.get("VALIDATOR_REF", "").strip()
+    if explicit and explicit.lower() not in ("auto", "main"):
+        return explicit
+    pinned = os.environ.get("VALIDATOR_PIN_SHA", "").strip()
+    if pinned:
+        return pinned
+    url = validator_repo_url()
+    try:
+        out = subprocess.check_output(
+            ["git", "ls-remote", f"{url}.git", "HEAD"],
+            text=True,
+            timeout=90,
+            stderr=subprocess.DEVNULL,
+        )
+        sha = out.split()[0] if out.strip() else ""
+        return sha or None
+    except (subprocess.CalledProcessError, OSError, ValueError):
+        return None
+
+
+def attach_validator_cloud_repo() -> bool:
+    return os.environ.get("CURSOR_VALIDATOR_ATTACH_VALIDATOR_REPO", "").strip().lower() in (
+        "1",
+        "true",
+        "yes",
+    )
+
+
 def resolve_starting_ref(root: Path) -> str:
     for key in ("GITHUB_SHA", "CURSOR_VALIDATOR_STARTING_REF"):
         val = os.environ.get(key, "").strip()
@@ -141,12 +171,18 @@ def build_prompt(
     agent_rel = ".cursor/agents/api-validator.md"
     validator_url = validator_repo_url()
 
+    pin = os.environ.get("VALIDATOR_PIN_SHA", "").strip()
+    pin_line = (
+        f"Use o commit do pacote validador deste CI: `{pin}` (apos clone, `git checkout {pin}`).\n"
+        if pin
+        else ""
+    )
     if cloud:
-        prep = f"""Ambiente **cloud**: clone da API no GitHub (starting_ref). Pode haver segundo repo com o pacote validador.
+        prep = f"""Ambiente **cloud**: clone da API no GitHub (starting_ref).
 
 **Obrigatorio antes da revisao** (nao altere src/ nem db/ da aplicacao):
-1. Localize o pacote `cursor-api-validator-java` (segundo repo no ambiente OU `git clone {validator_url} /tmp/cursor-api-validator-java`).
-2. `bash <pacote>/install/install.sh "$(pwd)" java-spring-esimples`
+1. `git clone {validator_url} /tmp/cursor-api-validator-java`
+{pin_line}2. `bash /tmp/cursor-api-validator-java/install/install.sh "$(pwd)" java-spring-esimples`
 3. Confirme que existe `{agent_rel}`; leia esse arquivo **inteiro** e siga precedencia, evidencia e veredito.
 4. Use `.cursor/skills/revisao-api/SKILL.md`, `docs/validador/nao-reportar.md` e regras `EV-*` em `.cursor/rules/` quando o diff tocar o assunto.
 
@@ -279,20 +315,33 @@ def main() -> int:
             f"Modo cloud: {repo_url} @ {starting_ref[:12]}...",
             file=sys.stderr,
         )
-        v_url = validator_repo_url()
-        v_ref = os.environ.get("VALIDATOR_REF", "main").strip() or "main"
+        repos = [
+            CloudRepository(
+                url=repo_url,
+                starting_ref=starting_ref,
+                pr_url=pr_url or None,
+            )
+        ]
+        if attach_validator_cloud_repo():
+            v_url = validator_repo_url()
+            v_ref = resolve_validator_starting_ref()
+            if v_ref:
+                repos.append(CloudRepository(url=v_url, starting_ref=v_ref))
+                print(
+                    f"Cloud: anexando validador {v_url} @ {v_ref[:12]}...",
+                    file=sys.stderr,
+                )
+            else:
+                print(
+                    "AVISO: CURSOR_VALIDATOR_ATTACH_VALIDATOR_REPO=1 mas sem VALIDATOR_REF/SHA; "
+                    "somente repo da API.",
+                    file=sys.stderr,
+                )
         options = AgentOptions(
             api_key=api_key,
             model=model,
             cloud=CloudAgentOptions(
-                repos=[
-                    CloudRepository(
-                        url=repo_url,
-                        starting_ref=starting_ref,
-                        pr_url=pr_url or None,
-                    ),
-                    CloudRepository(url=v_url, starting_ref=v_ref),
-                ],
+                repos=repos,
                 skip_reviewer_request=True,
                 auto_create_pr=False,
             ),
