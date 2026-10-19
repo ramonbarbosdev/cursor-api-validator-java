@@ -32,6 +32,12 @@ function Invoke-GitOut {
     return $out
 }
 
+function Format-GitOut {
+    param($Value)
+    if ($null -eq $Value) { return "" }
+    return ($Value | Out-String).Trim()
+}
+
 $PackageRoot = Split-Path -Parent $PSScriptRoot
 $AppDir = (Resolve-Path $AppDir).Path
 
@@ -50,6 +56,12 @@ $hasGh = $null -ne (Get-Command gh -ErrorAction SilentlyContinue)
 
 if ($SkipCheckout) {
     Write-Host "SkipCheckout: usando HEAD atual (ex.: checkout do Actions na PR)."
+    if ($env:GITHUB_PR_TITLE) { $prTitle = $env:GITHUB_PR_TITLE.Trim() }
+    if ($env:GITHUB_PR_BODY) { $prBody = $env:GITHUB_PR_BODY }
+    if (-not $prTitle -and $hasGh) {
+        $prTitle = (gh pr view $Pr --json title -q .title) 2>$null
+        if (-not $prBody) { $prBody = (gh pr view $Pr --json body -q .body) 2>$null }
+    }
 } elseif ($hasGh) {
     $prTitle = (gh pr view $Pr --json title -q .title) 2>$null
     $prBody = (gh pr view $Pr --json body -q .body) 2>$null
@@ -81,9 +93,9 @@ if ($SkipCheckout) {
 $baseRef = "origin/$Base"
 if (-not (Invoke-GitOut rev-parse --verify $baseRef)) { $baseRef = $Base }
 
-$headSha = (Invoke-GitOut rev-parse HEAD).ToString().Trim()
-$diffStat = Invoke-GitOut diff --stat "$baseRef...HEAD"
-if (-not $diffStat) { $diffStat = Invoke-GitOut diff --stat $baseRef HEAD }
+$headSha = Format-GitOut (Invoke-GitOut rev-parse HEAD)
+$diffStat = Format-GitOut (Invoke-GitOut diff --stat "$baseRef...HEAD")
+if (-not $diffStat) { $diffStat = Format-GitOut (Invoke-GitOut diff --stat $baseRef HEAD) }
 
 $patch = Invoke-GitOut diff "$baseRef...HEAD"
 if (-not $patch) { $patch = Invoke-GitOut diff $baseRef HEAD }
