@@ -113,9 +113,9 @@ Write-Host ""
 Write-Host "=== Preparacao concluida (ainda NAO e o relatorio da IA) ===" -ForegroundColor Cyan
 Write-Host "Prompt: $prompt"
 Write-Host ""
-Write-Host "Validacao completa - escolha UMA opcao:" -ForegroundColor Yellow
-Write-Host "  A) Cursor: Chat -> /api-validator -> cole o bloco text do prompt acima"
-Write-Host "  B) Terminal: CURSOR_API_KEY no .env, git push, run-api-validator.cmd (cloud no Windows)"
+Write-Host "Validacao LOCAL (recomendado no Windows):" -ForegroundColor Yellow
+Write-Host "  Chat -> /api-validator -> cole o bloco text do prompt acima (sem Cloud Agent)"
+Write-Host "Opcional (cloud, usa API): run-api-validator-cloud.cmd apos git push"
 Write-Host ""
 if ($Pr -gt 0 -and -not (Get-Command gh -ErrorAction SilentlyContinue)) {
     Write-Host "Dica: instale GitHub CLI (gh) para checkout automatico da PR." -ForegroundColor DarkYellow
