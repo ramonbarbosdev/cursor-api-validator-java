@@ -367,11 +367,18 @@ def main() -> int:
     try:
         result = Agent.prompt(prompt, options)
     except OSError as e:
-        print(f"SDK local falhou: {e}", file=sys.stderr)
-        print(
-            "Tente CURSOR_VALIDATOR_RUNTIME=cloud ou /api-validator no Cursor.",
-            file=sys.stderr,
-        )
+        print(f"SDK bridge falhou: {e}", file=sys.stderr)
+        if sys.platform == "win32" and runtime == "cloud":
+            print(
+                "No Windows o cursor-sdk usa bridge mesmo em cloud. "
+                "Use scripts/ci-api-validator-cloud-wsl.ps1 (WSL) ou job ubuntu.",
+                file=sys.stderr,
+            )
+        else:
+            print(
+                "Tente CURSOR_VALIDATOR_RUNTIME=cloud ou /api-validator no Cursor.",
+                file=sys.stderr,
+            )
         return 3
     except CursorAgentError as e:
         print(f"Falha ao iniciar agente: {e}", file=sys.stderr)

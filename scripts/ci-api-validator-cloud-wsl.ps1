@@ -1,0 +1,80 @@
+<#
+.SYNOPSIS
+  Executa ci-api-validator.py em modo cloud via WSL (Linux).
+  No Windows o cursor-sdk usa bridge local e falha (WinError 10038) mesmo em cloud.
+#>
+param(
+    [Parameter(Mandatory = $true)]
+    [string]$ValidatorRoot,
+    [Parameter(Mandatory = $true)]
+    [string]$RepoRoot
+)
+
+$ErrorActionPreference = "Stop"
+
+if (-not (Get-Command wsl -ErrorAction SilentlyContinue)) {
+    throw "WSL nao encontrado. No Windows use WSL2 ou API_VALIDATOR_EXECUTOR=cloud (ubuntu GitHub)."
+}
+
+function ConvertTo-WslPath {
+    param([string]$WinPath)
+    $resolved = (Resolve-Path $WinPath).Path
+    $forward = $resolved -replace '\\', '/'
+    $wsl = (wsl wslpath -a $forward 2>&1 | Out-String).Trim()
+    if (-not $wsl -or $wsl -match 'wslpath:') {
+        throw "wslpath falhou para: $resolved"
+    }
+    return $wsl
+}
+
+function Bash-SingleQuote {
+    param([string]$Value)
+    if ($null -eq $Value) { return "''" }
+    return "'" + ($Value -replace "'", "'\''") + "'"
+}
+
+$apiKey = $env:CURSOR_API_KEY
+if (-not $apiKey) {
+    throw "CURSOR_API_KEY ausente (secret no GitHub ou ambiente)."
+}
+
+$repoWsl = ConvertTo-WslPath $RepoRoot
+$valWsl = ConvertTo-WslPath $ValidatorRoot
+
+$exports = @(
+    "CURSOR_API_KEY=$(Bash-SingleQuote $apiKey)"
+    "CURSOR_VALIDATOR_RUNTIME=cloud"
+    "REPO_ROOT=$(Bash-SingleQuote $repoWsl)"
+)
+foreach ($name in @(
+        'GITHUB_REPOSITORY', 'GITHUB_SHA', 'PR_HTML_URL', 'GITHUB_BASE_REF',
+        'PR_NUMBER', 'VALIDATOR_REPO', 'VALIDATOR_PIN_SHA',
+        'CURSOR_VALIDATOR_STRICT_REPORT', 'CURSOR_VALIDATOR_MODEL'
+    )) {
+    $v = [Environment]::GetEnvironmentVariable($name)
+    if ($v) { $exports += "$name=$(Bash-SingleQuote $v)" }
+}
+
+$exportLine = ($exports -join ' ')
+$bash = @"
+set -euo pipefail
+export $exportLine
+cd $(Bash-SingleQuote $repoWsl)
+if ! python3 -m pip --version >/dev/null 2>&1; then
+  echo "WSL sem pip. Rode: sudo apt update && sudo apt install -y python3-pip" >&2
+  exit 1
+fi
+python3 -m pip install -q -r $(Bash-SingleQuote "$valWsl/scripts/requirements-ci.txt")
+python3 $(Bash-SingleQuote "$valWsl/scripts/ci-api-validator.py")
+"@
+
+$tempDir = if ($env:RUNNER_TEMP) { $env:RUNNER_TEMP } else { [System.IO.Path]::GetTempPath() }
+$shPath = Join-Path $tempDir "ci-api-validator-cloud-wsl.sh"
+$utf8NoBom = New-Object System.Text.UTF8Encoding $false
+[System.IO.File]::WriteAllText($shPath, ($bash -replace "`r`n", "`n"), $utf8NoBom)
+$shWsl = ConvertTo-WslPath $shPath
+
+Write-Host "Windows: executando api-validator (cloud) via WSL..."
+Write-Host "Repo: $repoWsl"
+wsl bash $(Bash-SingleQuote $shWsl)
+if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
