@@ -66,6 +66,21 @@ Copia também `stacks/java-spring-esimples/docs/padrao/*` e `revisao.overlay.md`
 /api-validator docs/SPEC.md — escopo ampliado, validador inteligente, diff vs develop
 ```
 
+## Validação a partir de Pull Request
+
+Fluxo completo: [`docs/validador/review-por-pr.md`](docs/validador/review-por-pr.md).
+
+Na VPS (repositório da API já clonado, `gh` autenticado):
+
+```bash
+./cursor-api-validator-java/scripts/review-pr.sh \
+  --app-dir /path/esimples-api \
+  --pr 430 \
+  --base develop
+```
+
+Abra `.api-validator-review/pr-430-prompt.md` no Cursor ou envie ao agente na nuvem. Template GitHub Actions: [`templates/github-actions/api-validator-pr.yml`](templates/github-actions/api-validator-pr.yml).
+
 ## Personalização no projeto alvo
 
 | O que | Onde no projeto |
