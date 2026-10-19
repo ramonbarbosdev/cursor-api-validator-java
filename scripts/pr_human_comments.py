@@ -226,10 +226,11 @@ def format_markdown(items: list[CommentItem]) -> str:
     if not items:
         return ""
     lines = [
-        "## Discussao na PR (humanos; contexto apenas)",
+        "## Discussao na PR (humanos; escopo de negocio)",
         "",
-        "Use para entender combinados e feedback do time. **Nao** substitui evidencia no diff/SPEC.",
-        "Ignore comentarios de bots e relatorios anteriores do api-validator.",
+        "Precedencia de escopo (ver secao no api-validator.md): combinados, excecoes e regras de negocio",
+        "explicadas pelo time. Use **antes** de criticar desvio de padrao generico.",
+        "Achados ainda exigem evidencia no diff/SPEC; seguranca/tenant critico nao e anulado aqui.",
         "",
     ]
     budget = _max_chars()

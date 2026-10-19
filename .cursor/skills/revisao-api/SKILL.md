@@ -11,7 +11,7 @@ Quality gate do diff. Com **escopo ampliado**, inclui SPEC, REST e testes confor
 
 ## Passos
 
-1. Escopo: texto após `/api-validator`, `docs/SPEC.md` na branch ou issue citada. Sem escopo, perguntar e parar.
+1. Escopo: texto após `/api-validator`, `docs/SPEC.md` na branch, issue citada ou **Discussao na PR** (CI / `.api-validator-review/pr-*-discussion.md`). Sem escopo, perguntar e parar.
 2. Ler `docs/validador/inteligente.md` e seguir o roteiro SPEC (resultado → DDL → domínio → HTTP → aceite).
 3. Ler `docs/validador/escopo-e-rest.md` e decidir se o **escopo ampliado** está ativo.
 4. `git status -sb` e `git diff origin/develop...HEAD --stat` (ou base indicada no escopo).

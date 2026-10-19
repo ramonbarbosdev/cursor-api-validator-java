@@ -142,7 +142,7 @@ O CI e o `review-pr` podem incluir **comentários e reviews de pessoas** no prom
 - Bots extras: `CURSOR_VALIDATOR_BOT_LOGINS=meu-bot,outro[bot]`.
 - Limite de texto: `CURSOR_VALIDATOR_PR_COMMENTS_MAX_CHARS` (padrão 12000).
 
-Discussão é **contexto**; achados continuam exigindo evidência no diff/SPEC.
+Discussão entra na **precedência de escopo** (combinado de negócio); o agente não deve reprovar por padrão genérico quando o comentário humano explica a intenção e o diff está alinhado. Achados continuam exigindo evidência no diff/SPEC; segurança/tenant crítico não é anulado por comentário.
 
 ## Comentário na PR
 

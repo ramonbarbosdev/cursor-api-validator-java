@@ -165,6 +165,23 @@ def warn_cloud_push(root: Path, starting_ref: str) -> None:
         )
 
 
+def git_diff_names(root: Path, base: str) -> list[str]:
+    for ref in (f"origin/{base}...HEAD", f"origin/{base}", "HEAD"):
+        try:
+            out = subprocess.check_output(
+                ["git", "diff", "--name-only", ref],
+                cwd=root,
+                text=True,
+                stderr=subprocess.DEVNULL,
+            )
+            names = [ln.strip() for ln in out.splitlines() if ln.strip()]
+            if names:
+                return names
+        except subprocess.CalledProcessError:
+            continue
+    return []
+
+
 def build_prompt(
     root: Path,
     base: str,
@@ -174,6 +191,7 @@ def build_prompt(
     *,
     cloud: bool,
     pr_discussion: str = "",
+    changed_files: list[str] | None = None,
 ) -> str:
     agent_rel = ".cursor/agents/api-validator.md"
     validator_url = validator_repo_url()
@@ -194,6 +212,7 @@ def build_prompt(
 4. Use `.cursor/skills/revisao-api/SKILL.md`, `docs/validador/nao-reportar.md` e regras `EV-*` em `.cursor/rules/` quando o diff tocar o assunto.
 
 
+Cite **pelo menos dois caminhos** de arquivo do diff no relatorio (em Critico/Importante ou na Conclusao), ex. `src/main/java/.../Foo.java`.
 Achado **Critico**/**Importante**: regra ou doc citada + evidencia (classe/metodo/linha ou trecho).
 """
     else:
@@ -202,12 +221,28 @@ Achado **Critico**/**Importante**: regra ou doc citada + evidencia (classe/metod
 {agent_file}
 
 Tambem use .cursor/skills/revisao-api/SKILL.md e docs/validador/nao-reportar.md quando aplicavel.
+
+Cite **pelo menos dois caminhos** de arquivo do diff no relatorio (sem secao Resumo).
 """
 
+    files_block = ""
+    if changed_files:
+        lines = "\n".join(f"- `{p}`" for p in changed_files[:35])
+        files_block = f"\nArquivos alterados no diff (citar >=2 no relatorio):\n{lines}\n"
+
     discussion_block = ""
+    discussion_rules = ""
     if pr_discussion.strip():
+        discussion_rules = """
+**Discussao humana na PR (bloco abaixo):** leia primeiro e trate como combinado de negocio (api-validator.md, secao Discussao na PR).
+Nao reprove por padrao de vizinho se o comentario explica a intencao e o diff implementa o combinado (cite autor + trecho no codigo).
+Seguranca critica e tenant critico (EV-SEC-*, EV-MTN-001/002/003) prevalecem sobre comentario.
+Comentario promete comportamento que o diff nao entrega, ou diff contradiz comentario: achado com evidencia + referencia ao comentario.
+"""
         discussion_block = f"\n{pr_discussion.strip()}\n"
     return f"""Voce e o revisor api-validator do esimples-api (Java Spring Boot).
+
+{discussion_rules}
 
 {prep}
 
@@ -227,7 +262,7 @@ Sem achado: nas secoes Critico e Importante escreva apenas `Nenhum.`
 
 git diff --stat (referencia local do disparo):
 {stat}
-{discussion_block}
+{files_block}{discussion_block}
 """
 
 
@@ -313,6 +348,8 @@ def main() -> int:
         if pr_discussion:
             write_sidecar(root, int(pr), pr_discussion)
 
+    changed_files = git_diff_names(root, base)
+
     model = os.environ.get("CURSOR_VALIDATOR_MODEL", "composer-2.5")
     prompt = build_prompt(
         root,
@@ -322,6 +359,7 @@ def main() -> int:
         spec_line,
         cloud=(runtime == "cloud"),
         pr_discussion=pr_discussion,
+        changed_files=changed_files,
     )
 
     if runtime == "cloud":

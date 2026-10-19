@@ -16,6 +16,19 @@ def norm(text: str) -> str:
     return folded.encode("ascii", "ignore").decode().lower()
 
 
+def file_mentioned_in_report(name: str, body: str) -> bool:
+    """Caminho completo, nome do arquivo ou stem da classe no relatorio."""
+    if name in body:
+        return True
+    base = Path(name).name
+    if base in body:
+        return True
+    stem = Path(name).stem
+    if len(stem) >= 4 and re.search(rf"\b{re.escape(stem)}\b", body):
+        return True
+    return False
+
+
 def git_diff_names(root: Path, base: str) -> list[str]:
     for ref in (f"origin/{base}...HEAD", f"origin/{base}", "HEAD"):
         try:
@@ -104,7 +117,7 @@ def main() -> int:
         changed = git_diff_names(root, base)
         if changed:
             mentioned = any(
-                name in body or Path(name).name in body for name in changed[:40]
+                file_mentioned_in_report(name, body) for name in changed[:40]
             )
             if not mentioned:
                 errors.append(

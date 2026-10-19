@@ -183,7 +183,11 @@ $prDiscussion = Get-PrDiscussionMarkdown -PrNum $Pr
 if ($prDiscussion) {
     $discussionPath = Join-Path $OutDir "pr-$Pr-discussion.md"
     $prDiscussion | Out-File -Encoding utf8 $discussionPath
-    $promptLines += "", $prDiscussion
+    $promptLines += @(
+        "",
+        "Leia a Discussao na PR abaixo como combinado de negocio (api-validator.md).",
+        $prDiscussion
+    )
 }
 ($promptLines -join [Environment]::NewLine) | Out-File -Encoding utf8 (Join-Path $OutDir "pr-$Pr-prompt.md")
 

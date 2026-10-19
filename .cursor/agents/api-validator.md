@@ -14,7 +14,7 @@ Catálogo `EV-*`: `.cursor/rules/*.mdc` (texto da regra). Este arquivo: fluxo, p
 
 ## Precedência (conflito = vence o número menor)
 
-1. Escopo explícito (texto após `/api-validator`, `docs/SPEC.md`, issue/PR citado).
+1. Escopo explícito (texto após `/api-validator`, `docs/SPEC.md`, issue citada, **comentários humanos na PR** quando vierem no prompt do CI ou em `.api-validator-review/pr-*-discussion.md`).
 2. Segurança crítica (`EV-SEC-*` CRÍTICO).
 3. Isolamento multi-tenant crítico (`EV-MTN-001/002/003`).
 4. Documentação canônica da tabela abaixo.
@@ -25,11 +25,22 @@ Catálogo `EV-*`: `.cursor/rules/*.mdc` (texto da regra). Este arquivo: fluxo, p
 
 Convenção genérica não anula regra específica documentada. Código vizinho não anula documentação canônica nem regra crítica. `docs/validador/revisao.md` é índice de vizinho; se discordar deste arquivo no veredito ou na evidência, **este arquivo prevalece**.
 
+## Discussão na PR (comentários humanos)
+
+Quando o prompt ou o sidecar traz **Discussao na PR**, trate como **combinado de negócio** do time (mesmo peso de escopo na precedência 1), não como opinião opcional.
+
+1. **Ler antes do diff** (ou logo após SPEC): o que o autor/revisor disse que é intencional, exceção, regra de domínio ou aceite informal.
+2. **Não reprovar por “padrão genérico”** se um comentário humano explica a intenção e o diff **implementa** esse combinado — cite o comentário (autor) e o trecho do código que confirma.
+3. **Segurança crítica e tenant crítico** (precedência 2–3) **não** são anulados por comentário (“faz assim mesmo” não autoriza cross-tenant ou bypass de permissão).
+4. **Comentário promete X e o diff não entrega X:** achado com evidência no código + referência ao comentário (autor/data).
+5. **Diff contradiz comentário** sem ser correção óbvia de bug: **Importante** ou **Crítico** conforme impacto funcional/segurança.
+6. Achados continuam exigindo evidência no diff/SPEC; o comentário orienta **o que julgar**, não substitui arquivo/classe/método no relatório.
+
 ## Fontes de verdade (não copiar o conteúdo para o relatório)
 
 | Assunto | Fonte | Quando ler |
 |---------|--------|------------|
-| Escopo | Texto do comando, `docs/SPEC.md` ou issue citada | Sempre, antes do diff |
+| Escopo | Texto do comando, `docs/SPEC.md`, issue citada, discussão humana na PR (CI) | Sempre, antes do diff |
 | Índice de padrões | `docs/padrao/README.md` | Dúvida sobre qual doc/regra usar |
 | Segurança / permissão | `.cursor/rules/security.mdc`, `docs/migrations-permissoes.md` (se existir no projeto) | Rota, filtro, `db/central` |
 | Multi-tenant | `.cursor/rules/multi-tenant.mdc` | Service, repository, query |
@@ -78,7 +89,7 @@ Arquivos fora do diff entram **somente** nesses eixos, com evidência e regra ci
 
 ## Antes de reportar
 
-1. **Escopo.** Sem issue/SPEC/texto no comando: pergunte e pare. Defina se o escopo ampliado está ativo.
+1. **Escopo.** Sem issue/SPEC/texto no comando: pergunte e pare. Se houver bloco **Discussao na PR**, incorpore ao combinado antes de julgar desvio de vizinho. Defina se o escopo ampliado está ativo.
 2. Git somente leitura: `git status -sb`, `git diff --stat`, `git diff origin/develop...HEAD` (ou a base indicada). Working tree fora do escopo **não** entra no veredito.
 3. Base da análise = arquivos do diff; no escopo ampliado, acrescentar leitura pontual de controllers/rotas indicados na SPEC ou em `docs/validador/escopo-e-rest.md`.
 4. Reconstruir o fluxo antes de apontar defeito numa camada isolada:
@@ -145,6 +156,7 @@ Endpoint novo `/.../dominio/...`: códigos persistidos sem validação em **nenh
 - N+1 / EntityGraph sem cenário de falha no escopo.
 - Working tree alheio (outro assunto, tooling, migration antiga fora do `git diff` da branch).
 - Hipótese (“normalmente deveria existir”, “boa prática”).
+- Desvio de padrão de vizinho quando comentário humano na PR documenta intenção de negócio e o diff está alinhado a esse combinado.
 
 ## Evidência obrigatória (gate)
 
