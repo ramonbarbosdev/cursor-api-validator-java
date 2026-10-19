@@ -13,7 +13,7 @@ Destinado a ser **instalado** no repositório da aplicação (ex.: `esimples-api
 | `.cursor/skills/revisao-api/` | Skill operacional |
 | `.cursor/rules/*.mdc` | Regras `EV-*` (REST, tenant, DDL, controller, service, …) |
 | `docs/validador/` | Roteiro inteligente, escopo REST, checklist, ruído |
-| `docs/padrao/` | Padrões genéricos (PT, DTO, controller, service, listagem) |
+| `docs/padrao/` | Padrões genéricos (banco, PT, DTO, controller, service, listagem) |
 | `docs/SPEC.template.md` | Template de `docs/SPEC.md` na branch |
 | `stacks/java-spring-esimples/` | Overlay exemplo (financeiro e-Simples: Padrão C, vizinhos) |
 | `install/` | Scripts para copiar arquivos no projeto alvo |

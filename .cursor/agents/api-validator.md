@@ -33,7 +33,7 @@ Convenção genérica não anula regra específica documentada. Código vizinho 
 | Índice de padrões | `docs/padrao/README.md` | Dúvida sobre qual doc/regra usar |
 | Segurança / permissão | `.cursor/rules/security.mdc`, `docs/migrations-permissoes.md` (se existir no projeto) | Rota, filtro, `db/central` |
 | Multi-tenant | `.cursor/rules/multi-tenant.mdc` | Service, repository, query |
-| Banco | `docs/arquitetura-banco-atual.md` (projeto) + migration do diff | `db/migration`, entity, FK |
+| Banco / DDL | `docs/padrao/banco.md`, `docs/arquitetura-banco-atual.md` (projeto) + migration do diff | `db/migration`, `db/central`, entity, FK |
 | Persistência / TX | `.cursor/rules/persistence.mdc` | Entity, `@Transactional`, schema |
 | REST / DTO | `.cursor/rules/rest-api.mdc` | Controller e request |
 | Arquitetura | `.cursor/rules/architecture.mdc` | Camada tenant vs central |

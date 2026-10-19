@@ -25,6 +25,7 @@ Se existir [`revisao.overlay.md`](revisao.overlay.md) no projeto, **mesclar** co
 | Controller fino | `docs/padrao/controllers.md` | Controller sem repository |
 | Service | `docs/padrao/services.md` | `*Service` + repositories |
 | Nomenclatura PT | `docs/padrao/nomenclatura-portugues.md` | Entity + migration |
+| Banco / migration / entity | `docs/padrao/banco.md` | `db/migration`, `TenantEntity` |
 | DDL / colunas | `docs/padrao/nomenclatura-colunas-sql.md` | `V*.sql`, `@Column` |
 | Permissões / central | doc do projeto | migration `db/central`, testes de rota |
 | Multi-tenant | `.cursor/rules/multi-tenant.mdc` | `TenantContextService`, queries |
