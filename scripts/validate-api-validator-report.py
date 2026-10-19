@@ -65,8 +65,10 @@ def main() -> int:
 
     text = report.read_text(encoding="utf-8")
     body = text
-    if "## API Validator" in text:
-        body = text.split("## API Validator", 1)[-1]
+    for heading in ("## Review", "## API Validator", "## Código Review"):
+        if heading in text:
+            body = text.split(heading, 1)[-1]
+            break
 
     errors: list[str] = []
 

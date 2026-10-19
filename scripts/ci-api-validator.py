@@ -233,7 +233,7 @@ git diff --stat (referencia local do disparo):
 
 def write_report(root: Path, pr_label: str, base: str, pr: str, body: str) -> Path:
     report_path = root / "api-validator-report.md"
-    header = f"<!-- api-validator -->\n## Código Review ({pr_label})\n\n"
+    header = f"<!-- review -->\n## Review ({pr_label})\n\n"
     if pr:
         header += f"_Base: `{base}` · disparo: push na PR_\n\n"
     report_path.write_text(header + body + "\n", encoding="utf-8")

@@ -125,7 +125,7 @@ No **esimples-api**, workflow `.github/workflows/api-validator-pr.yml`:
 - **Windows / runner self-hosted:** o Python nativo não roda o SDK (`WinError 10038`). O workflow usa **WSL** (`ci-api-validator-cloud-wsl.ps1`). Pré-requisitos: [`wsl-windows-runner.md`](wsl-windows-runner.md) e `scripts/install-wsl-prereqs.ps1`.
 - **Linux runner ou ubuntu GitHub:** `CURSOR_VALIDATOR_RUNTIME=cloud` direto. O agente clona a API no GitHub (`GITHUB_SHA` ou `HEAD`).
 - **Máquina local:** `git push` da branch antes de `run-api-validator.cmd`.
-- Comentário único na PR (`api-validator`); check falha se conclusão **NÃO APROVÁVEL**.
+- Comentário único na PR (tag `review`; autor `review` com secret `REVIEW_BOT_TOKEN` ou `github-actions[bot]`); check falha se conclusão **NÃO APROVÁVEL**.
 
 Setup: ver `esimples-api/.github/workflows/README-api-validator.md`.
 
@@ -133,7 +133,7 @@ Template legado (só artefatos, sem modelo): [`templates/github-actions/api-vali
 
 ## Comentários humanos na PR (contexto da validação)
 
-O CI e o `review-pr` podem incluir **comentários e reviews de pessoas** no prompt (não bots, não o relatório `<!-- api-validator -->`).
+O CI e o `review-pr` podem incluir **comentários e reviews de pessoas** no prompt (não bots, não o relatório `<!-- review -->`).
 
 - Script: `scripts/pr_human_comments.py` (API GitHub).
 - Token: `GITHUB_TOKEN` no Actions; localmente `gh auth login` ou `GITHUB_TOKEN` / `GH_TOKEN`.

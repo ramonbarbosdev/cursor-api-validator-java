@@ -51,7 +51,7 @@ $bashLines = @(
 )
 foreach ($name in @(
         'GITHUB_REPOSITORY', 'GITHUB_SHA', 'PR_HTML_URL', 'GITHUB_BASE_REF',
-        'PR_NUMBER', 'VALIDATOR_REPO', 'VALIDATOR_PIN_SHA',
+        'PR_NUMBER', 'VALIDATOR_REPO', 'VALIDATOR_REF', 'VALIDATOR_PIN_SHA',
         'CURSOR_VALIDATOR_STRICT_REPORT', 'CURSOR_VALIDATOR_MODEL',
         'GITHUB_TOKEN', 'CURSOR_VALIDATOR_PR_COMMENTS', 'CURSOR_VALIDATOR_BOT_LOGINS'
     )) {
@@ -86,4 +86,4 @@ Write-Host "Windows: executando api-validator (cloud) via WSL..."
 Write-Host "Repo: $repoWsl"
 wsl bash $(Bash-SingleQuote $shWsl)
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-
+

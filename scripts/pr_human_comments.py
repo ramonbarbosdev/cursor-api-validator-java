@@ -14,11 +14,13 @@ from pathlib import Path
 from typing import Any
 
 API_VERSION = "2022-11-28"
-VALIDATOR_MARKER = "<!-- api-validator -->"
+REVIEW_MARKERS = ("<!-- review -->", "<!-- api-validator -->")
 DEFAULT_BOT_LOGINS = frozenset(
     {
         "github-actions",
         "github-actions[bot]",
+        "review",
+        "review[bot]",
         "cursor[bot]",
         "dependabot",
         "dependabot[bot]",
@@ -85,9 +87,9 @@ def _is_bot(login: str, body: str) -> bool:
         return True
     if low.endswith("[bot]"):
         return True
-    if VALIDATOR_MARKER in body:
+    if any(m in body for m in REVIEW_MARKERS):
         return True
-    if "## API Validator" in body or "## Código Review" in body:
+    if "## Review" in body or "## API Validator" in body or "## Código Review" in body:
         return True
     return False
 
