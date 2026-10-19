@@ -208,9 +208,13 @@ Escopo: {pr_label}, diff vs origin/{base}.
 
 Execute (somente leitura): git fetch origin {base}; git diff --stat origin/{base}...HEAD; git diff origin/{base}...HEAD nos arquivos relevantes.
 
-Saida EXATAMENTE nesta ordem, em portugues: **Resumo**, **Critico**, **Importante**, **Conclusao**.
-Linha final obrigatoria: `Conclusao: NAO APROVAVEL` | `Conclusao: APROVAVEL COM RESSALVAS` | `Conclusao: APROVAVEL` (como em api-validator.md).
-Sem achado: Critico e Importante = "Nenhum."
+Saida EXATAMENTE nesta ordem, com estes titulos markdown (copie literal):
+## Resumo
+## Critico
+## Importante
+## Conclusao
+Ultima linha do bloco Conclusao: `Conclusao: NAO APROVAVEL` | `Conclusao: APROVAVEL COM RESSALVAS` | `Conclusao: APROVAVEL`.
+Sem achado: nas secoes Critico e Importante escreva apenas `Nenhum.`
 
 git diff --stat (referencia local do disparo):
 {stat}

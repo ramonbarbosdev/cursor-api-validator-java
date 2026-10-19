@@ -6,7 +6,14 @@ import os
 import re
 import subprocess
 import sys
+import unicodedata
 from pathlib import Path
+
+
+def norm(text: str) -> str:
+    """ASCII minusculo sem acentos (Conclusao == Conclusão)."""
+    folded = unicodedata.normalize("NFKD", text)
+    return folded.encode("ascii", "ignore").decode().lower()
 
 
 def git_diff_names(root: Path, base: str) -> list[str]:
@@ -26,6 +33,29 @@ def git_diff_names(root: Path, base: str) -> list[str]:
     return []
 
 
+def has_section(body: str, *keywords: str) -> bool:
+    nbody = norm(body)
+    for kw in keywords:
+        nk = norm(kw)
+        if nk in nbody:
+            return True
+        if re.search(rf"(?m)^#+\s*{re.escape(nk)}\b", nbody):
+            return True
+        if re.search(rf"\*\*{re.escape(nk)}\*\*", nbody):
+            return True
+    return False
+
+
+def has_conclusion_verdict(body: str) -> bool:
+    return bool(
+        re.search(
+            r"conclus[aã]o\s*:?\s*"
+            r"(nao\s+aprov[aá]vel|aprov[aá]vel\s+com\s+ressalvas|aprov[aá]vel)\b",
+            norm(body),
+        )
+    )
+
+
 def main() -> int:
     root = Path(os.environ.get("REPO_ROOT", ".")).resolve()
     report = root / "api-validator-report.md"
@@ -34,25 +64,32 @@ def main() -> int:
         return 1
 
     text = report.read_text(encoding="utf-8")
-    # Corpo apos cabecalho gerado pelo CI
     body = text
     if "## API Validator" in text:
         body = text.split("## API Validator", 1)[-1]
 
     errors: list[str] = []
 
-    for label in ("Resumo", "Crítico", "Importante", "Conclusão"):
-        if label not in body and label.lower() not in body.lower():
-            errors.append(f"Secao ausente: **{label}**")
+    if not has_section(body, "Resumo"):
+        errors.append("Secao ausente: Resumo")
+
+    if not has_section(body, "Critico", "Crítico"):
+        # Aceita achado explicito sem titulo (legado do prompt sem acento)
+        if not re.search(r"(?i)crit[ií]co\s*:", body) and "nenhum" not in norm(body):
+            errors.append("Secao ausente: Critico (ou linha Critico: / Nenhum.)")
+
+    if not has_section(body, "Importante"):
+        errors.append("Secao ausente: Importante")
+
+    if not has_section(body, "Conclusao", "Conclusão") and not has_conclusion_verdict(
+        body
+    ):
+        errors.append("Secao ausente: Conclusao (ou linha Conclusao: APROVAVEL ...)")
 
     if len(body.strip()) < 280:
         errors.append("Relatorio muito curto (possivel resposta generica).")
 
-    if not re.search(
-        r"Conclus[aã]o\s*:?\s*(N[AÃ]O\s+APROV[AÁ]VEL|APROV[AÁ]VEL\s+COM\s+RESSALVAS|APROV[AÁ]VEL)",
-        body,
-        re.IGNORECASE,
-    ):
+    if not has_conclusion_verdict(body):
         errors.append(
             "Conclusao invalida ou ausente (esperado: NAO APROVAVEL | "
             "APROVAVEL COM RESSALVAS | APROVAVEL)."
