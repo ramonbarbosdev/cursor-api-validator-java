@@ -125,7 +125,7 @@ No **esimples-api**, workflow `.github/workflows/api-validator-pr.yml`:
 - **Windows / runner self-hosted:** o Python nativo não roda o SDK (`WinError 10038`). O workflow usa **WSL** (`ci-api-validator-cloud-wsl.ps1`). Pré-requisitos: [`wsl-windows-runner.md`](wsl-windows-runner.md) e `scripts/install-wsl-prereqs.ps1`.
 - **Linux runner ou ubuntu GitHub:** `CURSOR_VALIDATOR_RUNTIME=cloud` direto. O agente clona a API no GitHub (`GITHUB_SHA` ou `HEAD`).
 - **Máquina local:** `git push` da branch antes de `run-api-validator.cmd`.
-- Comentário único na PR (tag `review`; autor `review` com secret `REVIEW_BOT_TOKEN` ou `github-actions[bot]`); check falha se conclusão **NÃO APROVÁVEL**.
+- Comentário único na PR (tag `review`; corpo em `api-validator-report-public.md` — sem seção Conclusão); autor `review` com secret `REVIEW_BOT_TOKEN` ou `github-actions[bot]`; check falha se conclusão **NÃO APROVÁVEL** (qualquer item em Crítico ou Importante exige esse veredito; não há `APROVÁVEL COM RESSALVAS`).
 
 Setup: ver `esimples-api/.github/workflows/README-api-validator.md`.
 

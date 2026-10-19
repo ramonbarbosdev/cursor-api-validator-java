@@ -58,4 +58,4 @@ Uso com `/api-validator` e escopo ampliado ([`escopo-e-rest.md`](escopo-e-rest.m
 ## Encerramento
 
 - [ ] Achados só com evidência (regra + arquivo + entrada → falha + impacto).
-- [ ] Veredito: APROVÁVEL | APROVÁVEL COM RESSALVAS | NÃO APROVÁVEL.
+- [ ] Veredito: APROVÁVEL (só se Crítico e Importante = Nenhum.) ou NÃO APROVÁVEL (se houver item em qualquer seção).

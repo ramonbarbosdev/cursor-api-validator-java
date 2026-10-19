@@ -24,7 +24,7 @@ Quality gate do diff. Com **escopo ampliado**, inclui SPEC, REST e testes confor
 11. Domínio na SPEC: service implementa estratégia descrita.
 12. REST: paths da SPEC vs controllers (`EV-REST-006`).
 13. Testes tocados: `mvn -q -Dtest=... test`.
-14. Saída: **Crítico**, **Importante**, **Conclusão** (agente).
+14. Saída do agente: **Crítico**, **Importante**, **Conclusão** (Conclusão só no artefato CI; comentário na PR omite essa seção).
 
 ## Delegação
 

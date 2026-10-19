@@ -9,6 +9,8 @@ import sys
 import unicodedata
 from pathlib import Path
 
+from report_public import write_public_report
+
 
 def norm(text: str) -> str:
     """ASCII minusculo sem acentos (Conclusao == Conclusão)."""
@@ -60,13 +62,74 @@ def has_section(body: str, *keywords: str) -> bool:
 
 
 def has_conclusion_verdict(body: str) -> bool:
-    return bool(
-        re.search(
-            r"conclus[aã]o\s*:?\s*"
-            r"(nao\s+aprov[aá]vel|aprov[aá]vel\s+com\s+ressalvas|aprov[aá]vel)\b",
-            norm(body),
-        )
+    return parse_conclusion_verdict(body) is not None
+
+
+def parse_conclusion_verdict(body: str) -> str | None:
+    """Retorna 'nao aprovavel' | 'aprovavel com ressalvas' | 'aprovavel' (normalizado)."""
+    nbody = norm(body)
+    m = re.search(
+        r"conclus[aã]o\s*:?\s*"
+        r"(nao\s+aprov[aá]vel|aprov[aá]vel\s+com\s+ressalvas|aprov[aá]vel)\b",
+        nbody,
     )
+    if m:
+        return m.group(1)
+    m2 = re.search(
+        r"(?m)^##\s*conclus[aã]o\s*\n\s*"
+        r"(nao\s+aprov[aá]vel|aprov[aá]vel\s+com\s+ressalvas|aprov[aá]vel)\s*$",
+        nbody,
+    )
+    if m2:
+        return m2.group(1)
+    return None
+
+
+def _report_sections(body: str) -> dict[str, str]:
+    sections: dict[str, str] = {}
+    chunks = re.split(r"(?m)^##\s+", body)
+    for chunk in chunks:
+        chunk = chunk.strip()
+        if not chunk:
+            continue
+        title_line, _, rest = chunk.partition("\n")
+        sections[norm(title_line.strip())] = rest
+    return sections
+
+
+def section_has_findings(section_body: str) -> bool:
+    t = section_body.strip()
+    if not t:
+        return False
+    compact = re.sub(r"\s+", " ", norm(t)).strip()
+    if re.fullmatch(r"nenhum\.?", compact):
+        return False
+    if compact.startswith("nenhum.") and len(compact) < 24:
+        return False
+    return True
+
+
+def check_conclusion_matches_findings(body: str) -> str | None:
+    sections = _report_sections(body)
+    critico = sections.get("critico", "")
+    importante = sections.get("importante", "")
+    has_crit = section_has_findings(critico)
+    has_imp = section_has_findings(importante)
+    verdict = parse_conclusion_verdict(body)
+
+    if has_crit or has_imp:
+        if verdict != "nao aprovavel":
+            return (
+                "Com itens em Critico ou Importante, conclusao deve ser "
+                "NAO APROVAVEL (nao APROVAVEL nem APROVAVEL COM RESSALVAS)."
+            )
+        return None
+
+    if verdict != "aprovavel":
+        return (
+            "Sem itens em Critico e Importante (Nenhum.), conclusao deve ser APROVAVEL."
+        )
+    return None
 
 
 def main() -> int:
@@ -103,9 +166,12 @@ def main() -> int:
 
     if not has_conclusion_verdict(body):
         errors.append(
-            "Conclusao invalida ou ausente (esperado: NAO APROVAVEL | "
-            "APROVAVEL COM RESSALVAS | APROVAVEL)."
+            "Conclusao invalida ou ausente (esperado: NAO APROVAVEL ou APROVAVEL)."
         )
+    else:
+        mismatch = check_conclusion_matches_findings(body)
+        if mismatch:
+            errors.append(mismatch)
 
     strict = os.environ.get("CURSOR_VALIDATOR_STRICT_REPORT", "1").strip() not in (
         "0",
@@ -131,6 +197,7 @@ def main() -> int:
             print(f"  - {err}", file=sys.stderr)
         return 1
 
+    write_public_report(root)
     print("Relatorio ok (gate de qualidade).")
     return 0
 

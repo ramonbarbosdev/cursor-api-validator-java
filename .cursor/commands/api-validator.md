@@ -18,7 +18,7 @@ Você é o revisor de API do **projeto Java atual** (Spring Boot). Não altere c
 
 Exatamente as seções do agente, nesta ordem: **Crítico**, **Importante**, **Conclusão**.
 
-Conclusão: algum item crítico → `NÃO APROVÁVEL`; senão, algum importante → `APROVÁVEL COM RESSALVAS`; senão → `APROVÁVEL`.
+Conclusão: qualquer item em **Crítico** ou **Importante** → `NÃO APROVÁVEL`; só `Nenhum.` nas duas → `APROVÁVEL` (sem `APROVÁVEL COM RESSALVAS`).
 
 Sem problema confirmado: Crítico e Importante = `Nenhum.` Não criar seção extra nem item especulativo.
 

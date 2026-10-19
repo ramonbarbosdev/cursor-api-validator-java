@@ -13,6 +13,7 @@ if str(_SCRIPT_DIR) not in sys.path:
     sys.path.insert(0, str(_SCRIPT_DIR))
 
 from pr_human_comments import load_pr_discussion_markdown, write_sidecar  # noqa: E402
+from report_public import strip_conclusion_section  # noqa: E402
 
 from cursor_sdk import (
     Agent,
@@ -257,7 +258,8 @@ Saida EXATAMENTE nesta ordem, com estes titulos markdown (copie literal):
 ## Critico
 ## Importante
 ## Conclusao
-Ultima linha do bloco Conclusao: `Conclusao: NAO APROVAVEL` | `Conclusao: APROVAVEL COM RESSALVAS` | `Conclusao: APROVAVEL`.
+Regra: qualquer item em Critico ou Importante (alem de `Nenhum.`) -> ultima linha `Conclusao: NAO APROVAVEL` (nunca APROVAVEL nem COM RESSALVAS).
+So `Nenhum.` nas duas secoes -> `Conclusao: APROVAVEL`.
 Sem achado: nas secoes Critico e Importante escreva apenas `Nenhum.`
 
 git diff --stat (referencia local do disparo):
@@ -271,7 +273,11 @@ def write_report(root: Path, pr_label: str, base: str, pr: str, body: str) -> Pa
     header = f"<!-- review -->\n## Review ({pr_label})\n\n"
     if pr:
         header += f"_Base: `{base}` · disparo: push na PR_\n\n"
-    report_path.write_text(header + body + "\n", encoding="utf-8")
+    full_text = header + body + "\n"
+    report_path.write_text(full_text, encoding="utf-8")
+    (root / "api-validator-report-public.md").write_text(
+        strip_conclusion_section(full_text), encoding="utf-8"
+    )
     return report_path
 
 
@@ -453,8 +459,11 @@ def main() -> int:
         body = "_Validador nao retornou texto. Ver logs do workflow._"
 
     report_path = write_report(root, pr_label, base, pr, body)
-    print(body)
-    print(f"\nSalvo em: {report_path}", file=sys.stderr)
+    public_body = strip_conclusion_section(
+        (root / "api-validator-report.md").read_text(encoding="utf-8")
+    )
+    print(public_body)
+    print(f"\nSalvo em: {report_path} (publico: api-validator-report-public.md)", file=sys.stderr)
     return 0
 
 

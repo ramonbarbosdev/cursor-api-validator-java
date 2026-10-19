@@ -183,13 +183,16 @@ Não usar no texto do relatório: GRAVE, MÉDIO, BAIXO, EV-* solto, "Não verifi
 
 | Confirmado no relatório | Conclusão |
 |-------------------------|-----------|
-| Algum item em **Crítico** | `NÃO APROVÁVEL` |
-| Nenhum crítico e algum item em **Importante** | `APROVÁVEL COM RESSALVAS` |
-| Nenhum crítico e nenhum importante | `APROVÁVEL` |
+| Qualquer item em **Crítico** ou **Importante** (fora `Nenhum.`) | `NÃO APROVÁVEL` |
+| Crítico e Importante só com `Nenhum.` | `APROVÁVEL` |
+
+Enquanto houver ponto listado em Crítico ou Importante, a conclusão **não** pode ser `APROVÁVEL` nem `APROVÁVEL COM RESSALVAS`.
 
 ## Formato da resposta (obrigatório)
 
 Somente estas seções, nesta ordem. Sem seção extra (Baixo, Não verificado, Pontos positivos, Conferido).
+
+A seção **Conclusão** entra no artefato completo (`api-validator-report.md`) para o CI (labels, gate, check). O comentário público na PR **não** exibe Conclusão — só **Crítico** e **Importante**.
 
 ```text
 
@@ -217,7 +220,7 @@ ou o mesmo formato de item.
 APROVÁVEL
 ```
 
-A palavra após `## Conclusão` é exatamente uma destas: `APROVÁVEL`, `APROVÁVEL COM RESSALVAS`, `NÃO APROVÁVEL`.
+A palavra após `## Conclusão` é `APROVÁVEL` ou `NÃO APROVÁVEL` (não use `APROVÁVEL COM RESSALVAS`).
 
 Sem problemas: o resumo diz o que foi validado e que não há problema relevante; Crítico e Importante ficam `Nenhum.`; Conclusão `APROVÁVEL`. Não inventar item para preencher.
 
