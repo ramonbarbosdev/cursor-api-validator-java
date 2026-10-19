@@ -79,7 +79,11 @@ Na VPS (repositório da API já clonado, `gh` autenticado):
   --base develop
 ```
 
-Abra `.api-validator-review/pr-430-prompt.md` no Cursor ou envie ao agente na nuvem. Template GitHub Actions: [`templates/github-actions/api-validator-pr.yml`](templates/github-actions/api-validator-pr.yml).
+Abra `.api-validator-review/pr-430-prompt.md` no Cursor ou envie ao agente na nuvem.
+
+### Automático em cada push na PR (GitHub Actions)
+
+No **esimples-api**: workflow `.github/workflows/api-validator-pr.yml` + secret `CURSOR_API_KEY`. Usa `scripts/ci-api-validator.py` deste repositório. Detalhes: `docs/validador/review-por-pr.md`.
 
 ## Personalização no projeto alvo
 

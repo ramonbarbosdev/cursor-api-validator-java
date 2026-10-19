@@ -115,9 +115,18 @@ Convênio útil no template de PR do esimples:
 - Base: develop
 ```
 
-## CI (GitHub Actions)
+## CI (GitHub Actions) — push na PR dispara o validador
 
-Template em [`templates/github-actions/api-validator-pr.yml`](../../templates/github-actions/api-validator-pr.yml): checkout da API, submodule ou clone do pacote, `install`, geração do contexto. O passo que **chama o modelo** exige `CURSOR_API_KEY` (SDK/Cloud) — o workflow só prepara o ambiente se você não tiver API ainda.
+No **esimples-api**, workflow `.github/workflows/api-validator-pr.yml`:
+
+- Eventos: `pull_request` → `opened`, **synchronize** (novo commit), `reopened`.
+- Secret: `CURSOR_API_KEY`.
+- Script: `scripts/ci-api-validator.py` + `scripts/requirements-ci.txt` neste pacote.
+- Comentário único na PR (`api-validator`); check falha se conclusão **NÃO APROVÁVEL**.
+
+Setup: ver `esimples-api/.github/workflows/README-api-validator.md`.
+
+Template legado (só artefatos, sem modelo): [`templates/github-actions/api-validator-pr.yml`](../../templates/github-actions/api-validator-pr.yml).
 
 ## Comentário na PR
 
