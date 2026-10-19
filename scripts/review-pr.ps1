@@ -54,6 +54,30 @@ $prTitle = ""
 $prBody = ""
 $hasGh = $null -ne (Get-Command gh -ErrorAction SilentlyContinue)
 
+function Get-PrDiscussionMarkdown {
+    param([int]$PrNum)
+    $fetch = Join-Path $PackageRoot "scripts\pr_human_comments.py"
+    if (-not (Test-Path $fetch)) { return "" }
+    $prev = $env:PR_NUMBER
+    $env:PR_NUMBER = "$PrNum"
+    if (-not $env:GITHUB_REPOSITORY -and $hasGh) {
+        $slug = (gh repo view --json nameWithOwner -q .nameWithOwner) 2>$null
+        if ($slug) { $env:GITHUB_REPOSITORY = $slug.Trim() }
+    }
+    try {
+        if (Get-Command py -ErrorAction SilentlyContinue) {
+            $out = & py -3 $fetch 2>$null
+        } elseif (Get-Command python -ErrorAction SilentlyContinue) {
+            $out = & python $fetch 2>$null
+        } else {
+            return ""
+        }
+        return (Format-GitOut $out)
+    } finally {
+        if ($null -ne $prev) { $env:PR_NUMBER = $prev } else { Remove-Item Env:PR_NUMBER -ErrorAction SilentlyContinue }
+    }
+}
+
 if ($SkipCheckout) {
     Write-Host "SkipCheckout: usando HEAD atual (ex.: checkout do Actions na PR)."
     if ($env:GITHUB_PR_TITLE) { $prTitle = $env:GITHUB_PR_TITLE.Trim() }
@@ -154,6 +178,12 @@ $promptLines += @(
 )
 if ($prBody) {
     $promptLines += "", "## Corpo da PR", $prBody
+}
+$prDiscussion = Get-PrDiscussionMarkdown -PrNum $Pr
+if ($prDiscussion) {
+    $discussionPath = Join-Path $OutDir "pr-$Pr-discussion.md"
+    $prDiscussion | Out-File -Encoding utf8 $discussionPath
+    $promptLines += "", $prDiscussion
 }
 ($promptLines -join [Environment]::NewLine) | Out-File -Encoding utf8 (Join-Path $OutDir "pr-$Pr-prompt.md")
 

@@ -64,7 +64,7 @@ Se a SPEC descreve **como** o negócio funciona (não só DDL):
 
 ## Saída
 
-Sempre o formato do agente: **Resumo**, **Crítico**, **Importante**, **Conclusão**. No **Resumo**, uma frase sobre aderência à SPEC (sim/parcial/não) quando escopo ampliado estiver ativo.
+Sempre o formato do agente: **Crítico**, **Importante**, **Conclusão**.
 
 ## Comando sugerido
 

@@ -70,9 +70,6 @@ def main() -> int:
 
     errors: list[str] = []
 
-    if not has_section(body, "Resumo"):
-        errors.append("Secao ausente: Resumo")
-
     if not has_section(body, "Critico", "Crítico"):
         # Aceita achado explicito sem titulo (legado do prompt sem acento)
         if not re.search(r"(?i)crit[ií]co\s*:", body) and "nenhum" not in norm(body):

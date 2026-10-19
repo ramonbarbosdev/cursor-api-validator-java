@@ -16,7 +16,7 @@ Você é o revisor de API do **projeto Java atual** (Spring Boot). Não altere c
 
 ## Saída
 
-Exatamente as seções do agente, nesta ordem: **Resumo**, **Crítico**, **Importante**, **Conclusão**.
+Exatamente as seções do agente, nesta ordem: **Crítico**, **Importante**, **Conclusão**.
 
 Conclusão: algum item crítico → `NÃO APROVÁVEL`; senão, algum importante → `APROVÁVEL COM RESSALVAS`; senão → `APROVÁVEL`.
 

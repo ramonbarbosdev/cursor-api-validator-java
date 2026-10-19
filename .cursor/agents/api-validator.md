@@ -62,7 +62,6 @@ Ativo quando existir `docs/SPEC.md`, texto estruturado no comando (DDL, **Import
 2. Para cada item de aceite não marcado no diff (com grep/evidência), avaliar **Importante** ou **Crítico** conforme tenant/segurança.
 3. Parágrafos de **estratégia de domínio** na SPEC viram checklist no service (não comparar só nomes de classe).
 4. Nomenclatura: SPEC literal > `docs/padrao/nomenclatura-colunas-sql.md` > vizinho legado (`EV-DDL-001`).
-5. No **Resumo**, uma frase sobre aderência global à SPEC (total / parcial / não atendida no diff).
 
 ## Escopo ampliado (além do diff)
 
@@ -181,9 +180,6 @@ Não usar no texto do relatório: GRAVE, MÉDIO, BAIXO, EV-* solto, "Não verifi
 Somente estas seções, nesta ordem. Sem seção extra (Baixo, Não verificado, Pontos positivos, Conferido).
 
 ```text
-## Resumo
-
-Parágrafo curto: o que foi validado, o que está alinhado quando isso for verdade, problemas relevantes se houver, e o resultado geral. Não é lista de arquivos.
 
 ## Crítico
 

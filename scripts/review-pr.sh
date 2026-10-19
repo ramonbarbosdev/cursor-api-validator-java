@@ -97,6 +97,20 @@ printf '{"pr":%s,"base":"%s","base_ref":"%s","head_sha":"%s","spec_path":"%s","s
     echo "## Corpo da PR (referência)"
     echo "$PR_BODY"
   fi
+  SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+  export PR_NUMBER="$PR"
+  if [[ -z "${GITHUB_REPOSITORY:-}" ]] && command -v gh >/dev/null 2>&1; then
+    GITHUB_REPOSITORY="$(gh repo view --json nameWithOwner -q .nameWithOwner 2>/dev/null || true)"
+    export GITHUB_REPOSITORY
+  fi
+  if command -v python3 >/dev/null 2>&1; then
+    DISCUSSION="$(python3 "$SCRIPT_DIR/pr_human_comments.py" 2>/dev/null || true)"
+    if [[ -n "$DISCUSSION" ]]; then
+      printf '%s\n' "$DISCUSSION" > "$OUT_DIR/pr-${PR}-discussion.md"
+      echo
+      echo "$DISCUSSION"
+    fi
+  fi
 } > "$OUT_DIR/pr-${PR}-prompt.md"
 
 echo "OK: $OUT_DIR/pr-${PR}-prompt.md"

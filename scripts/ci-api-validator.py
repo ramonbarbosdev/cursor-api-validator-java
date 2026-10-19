@@ -8,6 +8,12 @@ import subprocess
 import sys
 from pathlib import Path
 
+_SCRIPT_DIR = Path(__file__).resolve().parent
+if str(_SCRIPT_DIR) not in sys.path:
+    sys.path.insert(0, str(_SCRIPT_DIR))
+
+from pr_human_comments import load_pr_discussion_markdown, write_sidecar  # noqa: E402
+
 from cursor_sdk import (
     Agent,
     AgentOptions,
@@ -167,6 +173,7 @@ def build_prompt(
     spec_line: str,
     *,
     cloud: bool,
+    pr_discussion: str = "",
 ) -> str:
     agent_rel = ".cursor/agents/api-validator.md"
     validator_url = validator_repo_url()
@@ -186,7 +193,7 @@ def build_prompt(
 3. Confirme que existe `{agent_rel}`; leia esse arquivo **inteiro** e siga precedencia, evidencia e veredito.
 4. Use `.cursor/skills/revisao-api/SKILL.md`, `docs/validador/nao-reportar.md` e regras `EV-*` em `.cursor/rules/` quando o diff tocar o assunto.
 
-No **Resumo**, cite **pelo menos dois caminhos de arquivo** presentes no diff vs origin/{base}.
+
 Achado **Critico**/**Importante**: regra ou doc citada + evidencia (classe/metodo/linha ou trecho).
 """
     else:
@@ -197,6 +204,9 @@ Achado **Critico**/**Importante**: regra ou doc citada + evidencia (classe/metod
 Tambem use .cursor/skills/revisao-api/SKILL.md e docs/validador/nao-reportar.md quando aplicavel.
 """
 
+    discussion_block = ""
+    if pr_discussion.strip():
+        discussion_block = f"\n{pr_discussion.strip()}\n"
     return f"""Voce e o revisor api-validator do esimples-api (Java Spring Boot).
 
 {prep}
@@ -217,6 +227,7 @@ Sem achado: nas secoes Critico e Importante escreva apenas `Nenhum.`
 
 git diff --stat (referencia local do disparo):
 {stat}
+{discussion_block}
 """
 
 
@@ -296,9 +307,21 @@ def main() -> int:
     else:
         spec_line = "Sem docs/SPEC.md na branch: gate enxuto (somente git diff vs base)."
 
+    pr_discussion = ""
+    if pr.isdigit():
+        pr_discussion = load_pr_discussion_markdown(int(pr))
+        if pr_discussion:
+            write_sidecar(root, int(pr), pr_discussion)
+
     model = os.environ.get("CURSOR_VALIDATOR_MODEL", "composer-2.5")
     prompt = build_prompt(
-        root, base, pr_label, stat, spec_line, cloud=(runtime == "cloud")
+        root,
+        base,
+        pr_label,
+        stat,
+        spec_line,
+        cloud=(runtime == "cloud"),
+        pr_discussion=pr_discussion,
     )
 
     if runtime == "cloud":

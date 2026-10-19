@@ -131,6 +131,19 @@ Setup: ver `esimples-api/.github/workflows/README-api-validator.md`.
 
 Template legado (só artefatos, sem modelo): [`templates/github-actions/api-validator-pr.yml`](../../templates/github-actions/api-validator-pr.yml).
 
+## Comentários humanos na PR (contexto da validação)
+
+O CI e o `review-pr` podem incluir **comentários e reviews de pessoas** no prompt (não bots, não o relatório `<!-- api-validator -->`).
+
+- Script: `scripts/pr_human_comments.py` (API GitHub).
+- Token: `GITHUB_TOKEN` no Actions; localmente `gh auth login` ou `GITHUB_TOKEN` / `GH_TOKEN`.
+- Artefato: `.api-validator-review/pr-<n>-discussion.md`.
+- Desligar: `CURSOR_VALIDATOR_PR_COMMENTS=0`.
+- Bots extras: `CURSOR_VALIDATOR_BOT_LOGINS=meu-bot,outro[bot]`.
+- Limite de texto: `CURSOR_VALIDATOR_PR_COMMENTS_MAX_CHARS` (padrão 12000).
+
+Discussão é **contexto**; achados continuam exigindo evidência no diff/SPEC.
+
 ## Comentário na PR
 
 Após o relatório humano ou do agente:
