@@ -5,7 +5,8 @@ param(
     [int]$Pr,
     [string]$Base = "develop",
     [ValidateSet("java-spring-esimples", "")]
-    [string]$Stack = "java-spring-esimples"
+    [string]$Stack = "java-spring-esimples",
+    [switch]$SkipCheckout
 )
 
 $ErrorActionPreference = "Stop"
@@ -32,14 +33,25 @@ $prTitle = ""
 $prBody = ""
 $hasGh = $null -ne (Get-Command gh -ErrorAction SilentlyContinue)
 
-if ($hasGh) {
+if ($SkipCheckout) {
+    Write-Host "SkipCheckout: usando HEAD atual (ex.: checkout do Actions na PR)."
+} elseif ($hasGh) {
     $prTitle = (gh pr view $Pr --json title -q .title) 2>$null
     $prBody = (gh pr view $Pr --json body -q .body) 2>$null
     gh pr checkout $Pr --force 2>$null
     if ($LASTEXITCODE -ne 0) { gh pr checkout $Pr }
 } else {
     Write-Warning "gh nao encontrado; git fetch pull/$Pr/head"
-    Invoke-Git fetch origin "pull/$Pr/head:refs/heads/api-validator-pr-$Pr"
+    $prev = $ErrorActionPreference
+    $ErrorActionPreference = "Continue"
+    & git fetch origin "pull/$Pr/head:refs/heads/api-validator-pr-$Pr" 2>&1 | Out-Null
+    $ErrorActionPreference = $prev
+    if ($LASTEXITCODE -ne 0) {
+        & git fetch origin "pull/$Pr/head" 2>&1 | Out-Null
+    }
+    if ($LASTEXITCODE -ne 0) {
+        throw "Nao foi possivel buscar PR #$Pr (instale gh ou use -SkipCheckout no CI)."
+    }
     Invoke-Git checkout "api-validator-pr-$Pr"
 }
 
