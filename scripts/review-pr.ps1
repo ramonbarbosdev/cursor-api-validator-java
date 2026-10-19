@@ -13,8 +13,23 @@ $ErrorActionPreference = "Stop"
 
 function Invoke-Git {
     param([Parameter(ValueFromRemainingArguments = $true)][string[]]$Args)
+    $prev = $ErrorActionPreference
+    $ErrorActionPreference = "Continue"
     & git @Args 2>&1 | Out-Null
-    if ($LASTEXITCODE -ne 0) { throw "git $($Args -join ' ') falhou (exit $LASTEXITCODE)" }
+    $code = $LASTEXITCODE
+    $ErrorActionPreference = $prev
+    if ($code -ne 0) { throw "git $($Args -join ' ') falhou (exit $code)" }
+}
+
+function Invoke-GitOut {
+    param([Parameter(ValueFromRemainingArguments = $true)][string[]]$Args)
+    $prev = $ErrorActionPreference
+    $ErrorActionPreference = "Continue"
+    $out = & git @Args 2>&1
+    $code = $LASTEXITCODE
+    $ErrorActionPreference = $prev
+    if ($code -ne 0) { return $null }
+    return $out
 }
 
 $PackageRoot = Split-Path -Parent $PSScriptRoot
@@ -55,19 +70,24 @@ if ($SkipCheckout) {
     Invoke-Git checkout "api-validator-pr-$Pr"
 }
 
-Invoke-Git fetch origin $Base
-$baseRef = "origin/$Base"
-& git rev-parse --verify $baseRef 2>&1 | Out-Null
-if ($LASTEXITCODE -ne 0) { $baseRef = $Base }
-
-$headSha = (git rev-parse HEAD).Trim()
-$diffStat = git diff --stat "$baseRef...HEAD" 2>&1
-if (-not $diffStat) { $diffStat = git diff --stat $baseRef HEAD 2>&1 }
-
-git diff "$baseRef...HEAD" 2>&1 | Out-File -Encoding utf8 (Join-Path $OutDir "pr-$Pr-diff.patch")
-if (-not (Test-Path (Join-Path $OutDir "pr-$Pr-diff.patch")) -or (Get-Item (Join-Path $OutDir "pr-$Pr-diff.patch")).Length -eq 0) {
-    git diff $baseRef HEAD 2>&1 | Out-File -Encoding utf8 (Join-Path $OutDir "pr-$Pr-diff.patch")
+if ($SkipCheckout) {
+    $prev = $ErrorActionPreference
+    $ErrorActionPreference = "Continue"
+    & git fetch origin $Base 2>&1 | Out-Null
+    $ErrorActionPreference = $prev
+} else {
+    Invoke-Git fetch origin $Base
 }
+$baseRef = "origin/$Base"
+if (-not (Invoke-GitOut rev-parse --verify $baseRef)) { $baseRef = $Base }
+
+$headSha = (Invoke-GitOut rev-parse HEAD).ToString().Trim()
+$diffStat = Invoke-GitOut diff --stat "$baseRef...HEAD"
+if (-not $diffStat) { $diffStat = Invoke-GitOut diff --stat $baseRef HEAD }
+
+$patch = Invoke-GitOut diff "$baseRef...HEAD"
+if (-not $patch) { $patch = Invoke-GitOut diff $baseRef HEAD }
+($patch | Out-String) | Out-File -Encoding utf8 (Join-Path $OutDir "pr-$Pr-diff.patch")
 
 if ($Stack) {
     $install = Join-Path $PackageRoot "install\install.ps1"
