@@ -11,5 +11,7 @@ Roteiro, escopo, checklist, CI e ruído — **independente** de Crítico / Impor
 | [`nao-reportar.md`](nao-reportar.md) | Ruído conhecido |
 | [`review-por-pr.md`](review-por-pr.md) | PR, CI, comentário |
 | [`wsl-windows-runner.md`](wsl-windows-runner.md) | Runner Windows + WSL |
+| [`servidor-webhook.md`](servidor-webhook.md) | Webhook + ngrok (sem Actions) |
+| [`automacao-sem-actions.md`](automacao-sem-actions.md) | Polling vs webhook |
 
 Severidade do relatório: [`../critico/`](../critico/) · [`../importante/`](../importante/) · [`../melhoria-ajuste/`](../melhoria-ajuste/).

@@ -3,4 +3,4 @@ Thumbs.db
 *.log
 .idea/
 .vscode/
-
+scripts/.env.pr-review

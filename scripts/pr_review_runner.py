@@ -1,0 +1,195 @@
+#!/usr/bin/env python3
+"""Valida uma PR (checkout, install, agente, comentario na PR)."""
+from __future__ import annotations
+
+import argparse
+import base64
+import os
+import shutil
+import subprocess
+import sys
+from pathlib import Path
+from typing import Any
+
+SCRIPT_DIR = Path(__file__).resolve().parent
+if str(SCRIPT_DIR) not in sys.path:
+    sys.path.insert(0, str(SCRIPT_DIR))
+
+from pr_review_config import PrReviewConfig  # noqa: E402
+from pr_review_gate import should_validate  # noqa: E402
+from pr_review_github import (  # noqa: E402
+    fetch_pr,
+    resolve_token,
+    sync_block_label,
+    upsert_review_comment,
+)
+from pr_review_state import get_validated_sha, load_state, mark_validated  # noqa: E402
+
+
+def _run(cmd: list[str], *, cwd: Path, env: dict[str, str] | None = None) -> None:
+    subprocess.run(cmd, cwd=str(cwd), env=env, check=True)
+
+
+def _checkout_pr(
+    app_dir: Path,
+    repo: str,
+    pr_number: int,
+    pr: dict[str, Any],
+    token: str,
+) -> None:
+    if shutil.which("gh"):
+        _run(
+            ["gh", "pr", "checkout", str(pr_number), "--repo", repo, "--force"],
+            cwd=app_dir,
+        )
+        return
+
+    if not shutil.which("git"):
+        raise RuntimeError(
+            "Instale GitHub CLI (`gh`) ou Git no PATH para fazer checkout da PR."
+        )
+
+    local_ref = f"pr-review-{pr_number}"
+    basic = base64.b64encode(f"x-access-token:{token}".encode()).decode("ascii")
+    auth_header = f"AUTHORIZATION: basic {basic}"
+    git_auth = ["-c", f"http.extraheader={auth_header}"]
+    print(f"PR #{pr_number}: checkout via git (gh nao encontrado)…")
+    # Nao usar fetch ref:local se local ja esta checked out (git recusa).
+    _run(
+        ["git", *git_auth, "fetch", "--force", "origin", f"pull/{pr_number}/head"],
+        cwd=app_dir,
+    )
+    _run(["git", "checkout", "-B", local_ref, "FETCH_HEAD"], cwd=app_dir)
+
+
+def _resolve_repo(cfg: PrReviewConfig) -> str:
+    if cfg.repository and "/" in cfg.repository:
+        return cfg.repository
+    out = subprocess.check_output(
+        ["gh", "repo", "view", "--json", "nameWithOwner", "-q", ".nameWithOwner"],
+        text=True,
+        cwd=str(cfg.app_dir),
+    ).strip()
+    if not out:
+        raise RuntimeError("Defina GITHUB_REPOSITORY.")
+    return out
+
+
+def run_validation(cfg: PrReviewConfig, pr_number: int, *, force: bool = False) -> int:
+    token = resolve_token()
+    repo = _resolve_repo(cfg)
+    pr = fetch_pr(repo, pr_number, token)
+    sha = (pr.get("head") or {}).get("sha") or ""
+    pr_for_gate = {
+        "isDraft": pr.get("draft"),
+        "labels": [{"name": x["name"]} for x in (pr.get("labels") or [])],
+    }
+    ok, reason = should_validate(
+        pr_for_gate,
+        block_label=cfg.block_label,
+        require_label=cfg.require_label,
+        manual=force,
+    )
+    if not ok:
+        print(f"PR #{pr_number}: pulando ({reason}).")
+        return 0
+
+    state = load_state(cfg.state_path)
+    if not force and sha and get_validated_sha(state, pr_number) == sha:
+        print(f"PR #{pr_number}: SHA {sha[:12]} ja validado.")
+        return 0
+
+    print(f"PR #{pr_number}: validando ({reason}) @ {sha[:12]}…")
+
+    _checkout_pr(cfg.app_dir, repo, pr_number, pr, token)
+
+    install_ps1 = cfg.validator_root / "install" / "install.ps1"
+    install_sh = cfg.validator_root / "install" / "install.sh"
+    if sys.platform == "win32" and install_ps1.is_file():
+        _run(
+            [
+                "powershell",
+                "-NoProfile",
+                "-ExecutionPolicy",
+                "Bypass",
+                "-File",
+                str(install_ps1),
+                "-Target",
+                str(cfg.app_dir),
+                "-Stack",
+                cfg.stack,
+            ],
+            cwd=cfg.app_dir,
+        )
+    elif install_sh.is_file():
+        _run(["bash", str(install_sh), str(cfg.app_dir), cfg.stack], cwd=cfg.app_dir)
+    else:
+        raise RuntimeError(f"Install nao encontrado em {cfg.validator_root}")
+
+    env = os.environ.copy()
+    env["REPO_ROOT"] = str(cfg.app_dir)
+    env["GITHUB_REPOSITORY"] = repo
+    env["GITHUB_BASE_REF"] = cfg.base_branch
+    env["PR_NUMBER"] = str(pr_number)
+    env["PR_HTML_URL"] = pr.get("html_url") or ""
+    env.setdefault("CURSOR_VALIDATOR_RUNTIME", "cloud")
+    env.setdefault("CURSOR_VALIDATOR_STRICT_REPORT", "1")
+
+    ci = cfg.validator_root / "scripts" / "ci-api-validator.py"
+    validate = cfg.validator_root / "scripts" / "validate-api-validator-report.py"
+    wsl_ci = cfg.validator_root / "scripts" / "ci-api-validator-cloud-wsl.ps1"
+
+    if sys.platform == "win32" and wsl_ci.is_file() and env.get("CURSOR_VALIDATOR_RUNTIME") == "cloud":
+        _run(
+            [
+                "powershell",
+                "-NoProfile",
+                "-ExecutionPolicy",
+                "Bypass",
+                "-File",
+                str(wsl_ci),
+                "-ValidatorRoot",
+                str(cfg.validator_root),
+                "-RepoRoot",
+                str(cfg.app_dir),
+            ],
+            cwd=cfg.app_dir,
+            env=env,
+        )
+    else:
+        _run([sys.executable, str(ci)], cwd=cfg.app_dir, env=env)
+
+    _run([sys.executable, str(validate)], cwd=cfg.app_dir, env=env)
+
+    report_path = cfg.app_dir / "api-validator-report.md"
+    if not report_path.is_file():
+        print("Relatorio nao gerado.", file=sys.stderr)
+        return 2
+    report_body = report_path.read_text(encoding="utf-8")
+    upsert_review_comment(repo, pr_number, report_body, token)
+    sync_block_label(repo, pr_number, report_body, cfg.block_label, token)
+
+    if sha:
+        mark_validated(cfg.state_path, pr_number, sha)
+    print(f"PR #{pr_number}: concluido.")
+    return 0
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--pr", type=int, required=True)
+    parser.add_argument("--force", action="store_true", help="Ignora SHA ja validado")
+    args = parser.parse_args()
+    try:
+        cfg = PrReviewConfig.from_env()
+        return run_validation(cfg, args.pr, force=args.force)
+    except subprocess.CalledProcessError as e:
+        print(f"Comando falhou: {e}", file=sys.stderr)
+        return e.returncode or 1
+    except RuntimeError as e:
+        print(str(e), file=sys.stderr)
+        return 1
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
