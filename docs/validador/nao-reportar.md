@@ -23,10 +23,17 @@ Lista de situações que **não** entram em Crítico/Importante no `/api-validat
 - “Poderia extrair método”, Optional, interface nova, clean code.
 - Rename ou imports só por formatação.
 - N+1 / EntityGraph sem falha demonstrada no escopo.
+- JavaDoc ausente em classe/método **não alterado** pelo diff (legado).
+- Falta só `@author`/`@since` quando o bloco `/**` já descreve o método — opcional em Melhoria; não elevar a Importante só por isso.
 
 ## Documentação
 
 - `docs/arquitetura-banco-atual.md` desatualizada em relação ao banco (referência interna, não item de correção da atividade).
+
+## Front-end (repositório do SPA)
+
+- CSS, layout, componente React, roteamento, estado do front — **não** em Crítico/Importante.
+- Mensagem/status **definidos pela API** no diff (handler, `ApiErrorResponse`, auth) → avaliar em **Melhoria / Ajuste** ([`experiencia-consumidor-api.md`](experiencia-consumidor-api.md)), não aqui.
 
 ## Quando algo desta lista **vira** achado
 

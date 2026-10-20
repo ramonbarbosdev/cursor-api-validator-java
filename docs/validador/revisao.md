@@ -11,7 +11,8 @@ Fluxo: **escopo primeiro**, achados **concretos**.
 5. Tipo → **um** vizinho + **um** doc (tabelas abaixo).
 6. [`review-checklist-api.md`](review-checklist-api.md)
 7. [`nao-reportar.md`](nao-reportar.md)
-8. Relatório: **Crítico** / **Importante** / **Conclusão**
+8. Auth/erros no diff: [`erros-consumidor-critico-importante.md`](erros-consumidor-critico-importante.md) → depois [`experiencia-consumidor-api.md`](experiencia-consumidor-api.md)
+9. Relatório: **Crítico** / **Importante** / **Melhoria / Ajuste** / **Conclusão**
 
 Se existir [`revisao.overlay.md`](revisao.overlay.md) no projeto, **mesclar** com a tabela deste arquivo (vizinhos do domínio).
 

@@ -258,10 +258,13 @@ Execute (somente leitura): git fetch origin {base}; git diff --stat origin/{base
 Saida EXATAMENTE nesta ordem, com estes titulos markdown (copie literal):
 ## Critico
 ## Importante
+## Melhoria / Ajuste
 ## Conclusao
+Assuma front/consumidor da API. **Prioridade:** em auth/erros/validacao/listagem autenticada, varra **Critico** e **Importante** com docs/validador/erros-consumidor-critico-importante.md (loop de login, tenant, contrato quebrado, 401 vs 403, vazamento). So depois preencha **Melhoria / Ajuste** (docs/validador/experiencia-consumidor-api.md) para polish que NAO impede o usuario de concluir a tarefa. Melhoria NAO altera a Conclusao.
 Regra: qualquer item em Critico ou Importante (alem de `Nenhum.`) -> ultima linha `Conclusao: NAO APROVAVEL` (nunca APROVAVEL nem COM RESSALVAS).
-So `Nenhum.` nas duas secoes -> `Conclusao: APROVAVEL`.
-Sem achado: nas secoes Critico e Importante escreva apenas `Nenhum.`
+So `Nenhum.` em Critico e Importante -> `Conclusao: APROVAVEL`.
+No diff em service/controller/security: comentario // ou /* dentro de metodo -> **Importante** (EV-SVC-003); metodo publico novo sem JavaDoc -> **Importante** (EV-SVC-002); JavaDoc presente mas fora do padrao (docs/validador/melhoria-javadoc-e-comentarios.md) -> **Melhoria / Ajuste**.
+Sem achado tecnico: Critico e Importante = `Nenhum.`; Melhoria / Ajuste = `Nenhum.` ou itens de UX de API / JavaDoc.
 
 git diff --stat (referencia local do disparo):
 {stat}

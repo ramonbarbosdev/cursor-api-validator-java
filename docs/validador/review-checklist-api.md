@@ -33,8 +33,9 @@ Uso com `/api-validator` e escopo ampliado ([`escopo-e-rest.md`](escopo-e-rest.m
 ## Service (se o diff tocar `*Service`)
 
 - [ ] Persistência só via `repository.*` / `repository.central.*` — sem JDBC/`EntityManager` novo no service tenant (`EV-SVC-001`, [`services.md`](../padrao/services.md)).
-- [ ] JavaDoc em classe e métodos públicos novos ou alterados (`EV-SVC-002`).
-- [ ] Sem comentários no corpo dos métodos (`EV-SVC-003`).
+- [ ] Sem `//` ou `/* */` no corpo do método → **Importante** (`EV-SVC-003`, [`melhoria-javadoc-e-comentarios.md`](melhoria-javadoc-e-comentarios.md)).
+- [ ] Método/classe pública nova com JavaDoc `/**` → senão **Importante** (`EV-SVC-002`).
+- [ ] JavaDoc existente mas incompleto → **Melhoria / Ajuste** (`@param`, resumo, `@since`/`@author`).
 - [ ] Sem métodos mortos no diff (`EV-SVC-004`).
 
 ## Multi-tenant
@@ -56,7 +57,12 @@ Uso com `/api-validator` e escopo ampliado ([`escopo-e-rest.md`](escopo-e-rest.m
 - [ ] `mvn test` nas classes de teste tocadas pelo diff.
 - [ ] Records/DTOs usados em testes atualizados (compilação).
 
+## Consumidor da API (auth / erros / validação)
+
+- [ ] **Primeiro:** [`erros-consumidor-critico-importante.md`](erros-consumidor-critico-importante.md) — loop login, tenant, contrato, 401/403, vazamento → **Crítico** / **Importante**.
+- [ ] **Depois:** [`experiencia-consumidor-api.md`](experiencia-consumidor-api.md) — polish → **Melhoria / Ajuste** só se o fluxo conclui.
+
 ## Encerramento
 
 - [ ] Achados só com evidência (regra + arquivo + entrada → falha + impacto).
-- [ ] Veredito: APROVÁVEL (só se Crítico e Importante = Nenhum.) ou NÃO APROVÁVEL (se houver item em qualquer seção).
+- [ ] Veredito: APROVÁVEL (Crítico e Importante = Nenhum.) ou NÃO APROVÁVEL (item em Crítico ou Importante). **Melhoria / Ajuste** não altera a Conclusão.

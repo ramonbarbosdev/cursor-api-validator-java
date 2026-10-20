@@ -16,10 +16,14 @@ Você é o revisor de API do **projeto Java atual** (Spring Boot). Não altere c
 
 ## Saída
 
-Exatamente as seções do agente, nesta ordem: **Crítico**, **Importante**, **Conclusão**.
+Exatamente as seções do agente, nesta ordem: **Crítico**, **Importante**, **Melhoria / Ajuste**, **Conclusão**.
 
-Conclusão: qualquer item em **Crítico** ou **Importante** → `NÃO APROVÁVEL`; só `Nenhum.` nas duas → `APROVÁVEL` (sem `APROVÁVEL COM RESSALVAS`).
+Conclusão: qualquer item em **Crítico** ou **Importante** → `NÃO APROVÁVEL`; só `Nenhum.` nas duas → `APROVÁVEL` (sem `APROVÁVEL COM RESSALVAS`). **Melhoria / Ajuste** não altera a Conclusão.
 
-Sem problema confirmado: Crítico e Importante = `Nenhum.` Não criar seção extra nem item especulativo.
+Assumir front: **priorizar** defeitos em Crítico/Importante (`docs/validador/erros-consumidor-critico-importante.md`); Melhoria / Ajuste só para o que não bloqueia o usuário (`experiencia-consumidor-api.md`).
+
+JavaDoc/comentários no diff: comentário `//` ou `/*` dentro de método → **Importante**; JavaDoc incompleto (padronização em `melhoria-javadoc-e-comentarios.md`) → **Melhoria / Ajuste**.
+
+Sem problema confirmado: Crítico e Importante = `Nenhum.`; Melhoria / Ajuste = `Nenhum.` ou só melhorias com evidência. Não criar outras seções nem item especulativo.
 
 Contexto adicional do usuário (escopo, SPEC, issue):

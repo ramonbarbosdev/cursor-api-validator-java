@@ -16,6 +16,7 @@ Quality gate do diff. Com **escopo ampliado**, inclui SPEC, REST e testes confor
 3. Ler `docs/validador/escopo-e-rest.md` e decidir se o **escopo ampliado** está ativo.
 4. `git status -sb` e `git diff origin/develop...HEAD --stat` (ou base indicada no escopo).
 5. Ler `docs/validador/nao-reportar.md` antes de achados marginais.
+5b. Auth/erros/validação no diff: **primeiro** `docs/validador/erros-consumidor-critico-importante.md` (Crítico/Importante); **depois** `experiencia-consumidor-api.md` (Melhoria / Ajuste, só polish).
 6. Checklist: `docs/validador/review-checklist-api.md` (seções pertinentes).
 7. Regras `EV-*` em `.cursor/rules/*.mdc` só nas áreas tocadas pelo diff/SPEC.
 8. Vizinho: `docs/validador/revisao.md` + `revisao.overlay.md` se existir.
@@ -24,7 +25,8 @@ Quality gate do diff. Com **escopo ampliado**, inclui SPEC, REST e testes confor
 11. Domínio na SPEC: service implementa estratégia descrita.
 12. REST: paths da SPEC vs controllers (`EV-REST-006`).
 13. Testes tocados: `mvn -q -Dtest=... test`.
-14. Saída do agente: **Crítico**, **Importante**, **Conclusão** (Conclusão só no artefato CI; comentário na PR omite essa seção).
+13b. Service/controller/security no diff: `melhoria-javadoc-e-comentarios.md` — inline no método → Importante; JavaDoc fraco → Melhoria / Ajuste.
+14. Saída do agente: **Crítico**, **Importante**, **Melhoria / Ajuste**, **Conclusão** (Conclusão só no artefato CI; comentário na PR omite Conclusão).
 
 ## Delegação
 

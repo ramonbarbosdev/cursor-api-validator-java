@@ -12,6 +12,8 @@ Catálogo `EV-*`: `.cursor/rules/*.mdc` (texto da regra). Este arquivo: fluxo, p
 
 **O diff do escopo entrega o combinado, sem violar regra crítica de segurança, tenant ou persistência?**
 
+**Com consumidor da API (front) assumido:** quais falhas fariam o usuário **não concluir o fluxo**, **ver dado errado** ou **comprometer segurança**? Essas vão em **Crítico** ou **Importante** — não em Melhoria. Roteiro: `docs/validador/erros-consumidor-critico-importante.md`.
+
 ## Precedência (conflito = vence o número menor)
 
 1. Escopo explícito (texto após `/api-validator`, `docs/SPEC.md`, issue citada, **comentários humanos na PR** quando vierem no prompt do CI ou em `.api-validator-review/pr-*-discussion.md`).
@@ -55,13 +57,15 @@ Quando o prompt ou o sidecar traz **Discussao na PR**, trate como **combinado de
 | Escopo ampliado / REST | `docs/validador/escopo-e-rest.md` | SPEC, controller, integração HTTP |
 | Ruído conhecido | `docs/validador/nao-reportar.md` | Antes de publicar achado marginal |
 | Checklist operacional | `docs/validador/review-checklist-api.md` | Seções que o diff/SPEC tocam |
+| Erros que bloqueiam o usuário (front) | `docs/validador/erros-consumidor-critico-importante.md` | **Antes** de Melhoria: classificar Crítico/Importante |
+| Resposta ao usuário (polish) | `docs/validador/experiencia-consumidor-api.md` | Só o que **não** é defeito bloqueante |
 | Padrão C (listagem) + agregado pai/filho | `docs/padrao/colecao-filha-vinculada-pai.md` (se instalado) | Listagem enxuta; ver também `revisao.overlay.md` |
 | Validador inteligente (roteiro SPEC) | `docs/validador/inteligente.md` | Sempre que houver SPEC ou escopo ampliado |
 | Nomenclatura PT (método, model, campo) | `docs/padrao/nomenclatura-portugues.md`, `EV-NOM-003`, `EV-NOM-004` | Diff com identificadores novos |
 | Nomenclatura colunas `id_`/`nm_` tudojunto | `docs/padrao/nomenclatura-colunas-sql.md`, `EV-DDL-001` | Migration/entity com nomes literais na SPEC |
 | Listagem paginada/filtrada | `docs/padrao/listagem-paginada-filtrada.md`, `EV-LST-*` | Novo `listar` ou GET coleção |
 | Controllers (fino, delegação) | `docs/padrao/controllers.md`, `EV-CTL-*` | Diff em `controller/*` |
-| Services (JavaDoc, repository, comentários) | `docs/padrao/services.md`, `EV-SVC-*` | Diff em `service/*` |
+| Services (JavaDoc, repository, comentários) | `docs/padrao/services.md`, `EV-SVC-*`, `docs/validador/melhoria-javadoc-e-comentarios.md` | Diff em `service/*`, `controller/*`, `security/*` |
 
 Não pedir atualização de `docs/arquitetura-banco-atual.md`. Doc desatualizada não é achado (`EV-ESP-003`).
 
@@ -115,8 +119,10 @@ Percorrer só o que o diff tocar. Reportar a área apenas se houver achado com e
 | Testes | Teste do escopo que falha, compilação quebrada em teste tocado pelo diff, ou requisito explícito da SPEC |
 | Arquitetura | Tenant usando persistência central sem exceção documentada |
 | Reuso | Desvio de doc canônica, não de gosto |
+| JavaDoc / comentários | `EV-SVC-002/003`, `melhoria-javadoc-e-comentarios.md` — inline no método → **Importante**; JavaDoc fraco → **Melhoria / Ajuste** |
 | Erros | Exceção engolida no caminho alterado |
 | Performance | Só consulta sem limite/filtro com impacto demonstrável no diff |
+| Erros ao usuário (consumidor) | 1º `erros-consumidor-critico-importante.md` → Crítico/Importante; 2º polish em Melhoria |
 
 ## O que pode virar achado
 
@@ -129,6 +135,7 @@ Só com evidência (regra, arquivo, comportamento, impacto):
 5. `EV-*` **IMPORTANTE** violado com comportamento incorreto comprovado (não por ausência estética).
 6. Desvio de documentação canônica ou do padrão documentado do tipo de atividade.
 7. Mudança em método compartilhado cujo chamador no repo quebra — listar o chamador encontrado (Grep).
+8. Com auth/erros/validação no diff: padrão em `docs/validador/erros-consumidor-critico-importante.md` que impeça uso seguro ou correto do sistema → **Crítico** ou **Importante** (não Melhoria).
 
 ### Mapeamento EV → severidade do relatório
 
@@ -149,12 +156,21 @@ Migration (`EV-PER-006`): prioridade a **dados existentes** e **integridade** �
 
 Endpoint novo `/.../dominio/...`: códigos persistidos sem validação em **nenhuma** camada do fluxo é achado **MÉDIO**. Se `validar()` ou o service já rejeita, não reportar.
 
-## O que nunca é achado
+## Consumidor da API (ordem obrigatória)
+
+1. **Crítico / Importante primeiro** — diff em auth, handlers, filtros, erros, listagens autenticadas: aplicar `docs/validador/erros-consumidor-critico-importante.md`. Loop de login, tenant errado, contrato que impede entrar no app, 401/403 enganoso com logout, vazamento em mensagem → **não** é Melhoria.
+2. **Melhoria / Ajuste depois** — polish de API ao usuário (`experiencia-consumidor-api.md`) e **qualidade de JavaDoc** (`melhoria-javadoc-e-comentarios.md`).
+
+**Documentação no diff:** comentário `//` ou `/* */` **no corpo** do método → **Importante** (`EV-SVC-003`), nunca Melhoria. Classe/método público **novo** sem `/**` → **Importante** (`EV-SVC-002`). JavaDoc **presente** mas incompleto (resumo, `@param`, `@since`/`@author`) → **Melhoria / Ajuste**.
+
+Se em dúvida entre Importante e Melhoria (UX): *o usuário consegue terminar a tarefa principal sem workaround no front?* Não → **Importante**. Sim, mas confuso → Melhoria.
+
+## O que nunca é achado (Crítico / Importante)
 
 - “Poderia”, “seria melhor”, extrair método, Optional, nova interface, clean code.
 - Swagger / OpenAPI.
 - Estilo, rename, legado fora do diff **e** fora do escopo ampliado (SPEC/REST/validação).
-- Front-end, UX, máscara.
+- Layout, CSS, componente ou roteamento **do repositório front** (fora do diff da API).
 - N+1 / EntityGraph sem cenário de falha no escopo.
 - Working tree alheio (outro assunto, tooling, migration antiga fora do `git diff` da branch).
 - Hipótese (“normalmente deveria existir”, “boa prática”).
@@ -188,13 +204,15 @@ Não usar no texto do relatório: GRAVE, MÉDIO, BAIXO, EV-* solto, "Não verifi
 | Qualquer item em **Crítico** ou **Importante** (fora `Nenhum.`) | `NÃO APROVÁVEL` |
 | Crítico e Importante só com `Nenhum.` | `APROVÁVEL` |
 
+Itens em **Melhoria / Ajuste** **não** entram nesta tabela (podem existir com Conclusão `APROVÁVEL`).
+
 Enquanto houver ponto listado em Crítico ou Importante, a conclusão **não** pode ser `APROVÁVEL` nem `APROVÁVEL COM RESSALVAS`.
 
 ## Formato da resposta (obrigatório)
 
 Somente estas seções, nesta ordem. Sem seção extra (Baixo, Não verificado, Pontos positivos, Conferido).
 
-A seção **Conclusão** entra no artefato completo (`api-validator-report.md`) para o CI (labels, gate, check). O comentário público na PR **não** exibe Conclusão — só **Crítico** e **Importante**.
+A seção **Conclusão** entra no artefato completo (`api-validator-report.md`) para o CI (labels, gate, check). O comentário público na PR **não** exibe Conclusão — exibe **Crítico**, **Importante** e **Melhoria / Ajuste**.
 
 ```text
 
@@ -217,6 +235,21 @@ Nenhum.
 
 ou o mesmo formato de item.
 
+## Melhoria / Ajuste
+
+Nenhum.
+
+ou cada item (perspectiva usuário final via consumidor da API; ver docs/validador/experiencia-consumidor-api.md):
+
+* **Título objetivo**
+
+  * **Onde:** arquivo, classe ou método
+  * **Cenário:** ação do usuário
+  * **O que o usuário vê hoje:** mensagem/tela provável com o retorno atual
+  * **Melhoria:** ajuste de status, corpo de erro ou contrato para o front
+
+Itens de **JavaDoc** (padronização, tags faltando) usam o mesmo formato, com **Ajuste:** apontando para `docs/padrao/services.md` ou vizinho do módulo. **Não** colocar comentário inline no meio do código em Melhoria — isso é **Importante**.
+
 ## Conclusão
 
 APROVÁVEL
@@ -224,6 +257,6 @@ APROVÁVEL
 
 A palavra após `## Conclusão` é `APROVÁVEL` ou `NÃO APROVÁVEL` (não use `APROVÁVEL COM RESSALVAS`).
 
-Sem problemas: o resumo diz o que foi validado e que não há problema relevante; Crítico e Importante ficam `Nenhum.`; Conclusão `APROVÁVEL`. Não inventar item para preencher.
+Sem problemas técnicos bloqueantes: Crítico e Importante `Nenhum.`; Melhoria / Ajuste `Nenhum.` ou só itens de UX de API com evidência; Conclusão `APROVÁVEL`. Não inventar item para preencher.
 
 Não usar emoji, linguagem de auditoria, nem sugestão de refatoração. Não alterar código da aplicação nesta tarefa.

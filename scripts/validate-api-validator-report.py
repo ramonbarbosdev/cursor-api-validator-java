@@ -156,6 +156,9 @@ def main() -> int:
     if not has_section(body, "Importante"):
         errors.append("Secao ausente: Importante")
 
+    if not has_section(body, "Melhoria", "Ajuste"):
+        errors.append("Secao ausente: Melhoria / Ajuste")
+
     if not has_section(body, "Conclusao", "Conclusão") and not has_conclusion_verdict(
         body
     ):

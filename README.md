@@ -8,7 +8,7 @@ Destinado a ser **instalado** no repositório da aplicação (ex.: `esimples-api
 
 | Caminho | Descrição |
 |---------|-----------|
-| `.cursor/agents/api-validator.md` | Veredito:  Crítico, Importante, Conclusão |
+| `.cursor/agents/api-validator.md` | Veredito: Crítico, Importante, Melhoria/Ajuste (UX API), Conclusão |
 | `.cursor/commands/api-validator.md` | Comando Cursor `/api-validator` |
 | `.cursor/skills/revisao-api/` | Skill operacional |
 | `.cursor/rules/*.mdc` | Regras `EV-*` (REST, tenant, DDL, controller, service, …) |
