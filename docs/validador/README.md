@@ -1,32 +1,47 @@
 # Validador de API (`/api-validator`)
 
-Processo de revisão: cruzar **SPEC**, **diff** e **padrões** do projeto Java/Spring.
+Cruzar **SPEC**, **diff** e **padrões** do projeto Java/Spring.
 
-**Veredito:** [`.cursor/agents/api-validator.md`](../../.cursor/agents/api-validator.md)
+**Agente:** [`.cursor/agents/api-validator.md`](../../.cursor/agents/api-validator.md) · **Skill:** [`.cursor/skills/revisao-api/SKILL.md`](../../.cursor/skills/revisao-api/SKILL.md)
 
-**Skill:** [`.cursor/skills/revisao-api/SKILL.md`](../../.cursor/skills/revisao-api/SKILL.md) · **Comando:** [`.cursor/commands/api-validator.md`](../../.cursor/commands/api-validator.md)
-
-**Padrões:** [`../padrao/README.md`](../padrao/README.md) · **SPEC:** [`../SPEC.template.md`](../SPEC.template.md) → `docs/SPEC.md` na branch
-
-**Vizinhos extras (opcional):** [`revisao.overlay.md`](revisao.overlay.md) — ex. stack `java-spring-esimples`
+**Padrões:** [`../padrao/README.md`](../padrao/README.md) · **SPEC:** [`../SPEC.template.md`](../SPEC.template.md)
 
 ---
 
-## Documentos
+## Por severidade do relatório
 
-| Arquivo | Uso |
-|---------|-----|
-| [`inteligente.md`](inteligente.md) | Roteiro SPEC → DDL → domínio → REST |
-| [`escopo-e-rest.md`](escopo-e-rest.md) | Escopo ampliado; colisão `/{id}` |
-| [`revisao.md`](revisao.md) | Tipo de atividade → doc + vizinho (base) |
-| [`nao-reportar.md`](nao-reportar.md) | Ruído |
-| [`review-checklist-api.md`](review-checklist-api.md) | Checklist por área |
-| [`erros-consumidor-critico-importante.md`](erros-consumidor-critico-importante.md) | **Prioridade:** defeitos ao usuário → Crítico/Importante |
-| [`experiencia-consumidor-api.md`](experiencia-consumidor-api.md) | Polish HTTP → Melhoria / Ajuste |
-| [`melhoria-javadoc-e-comentarios.md`](melhoria-javadoc-e-comentarios.md) | JavaDoc (Melhoria); comentário inline → Importante |
-| [`wsl-windows-runner.md`](wsl-windows-runner.md) | WSL no Windows (runner self-hosted + SDK cloud) |
-| [`review-por-pr.md`](review-por-pr.md) | PR, CI e comentário na PR |
+| Seção no relatório | Pasta | Bloqueia `APROVÁVEL`? |
+|--------------------|-------|------------------------|
+| **Crítico** | [`critico/`](critico/README.md) | Sim |
+| **Importante** | [`importante/`](importante/README.md) | Sim |
+| **Melhoria / Ajuste** | [`melhoria-ajuste/`](melhoria-ajuste/README.md) | Não |
+| **Conclusão** | (só artefato CI) | — |
+
+### Crítico
+
+- [`critico/consumidor-api.md`](critico/consumidor-api.md) — front: tenant, bypass, vazamento, migration
+- [`critico/regras-ev-e-padrao.md`](critico/regras-ev-e-padrao.md) — `EV-*` e padrões CRÍTICOS
+
+### Importante
+
+- [`importante/consumidor-api.md`](importante/consumidor-api.md) — contrato HTTP, auth, REST, SPEC
+- [`importante/codigo-javadoc-comentarios.md`](importante/codigo-javadoc-comentarios.md) — `//` no método, JavaDoc ausente
+- [`importante/sinais-futuros.md`](importante/sinais-futuros.md) — sinais no diff
+- [`importante/regras-ev-e-padrao.md`](importante/regras-ev-e-padrao.md) — `EV-*` IMPORTANTE
+
+### Melhoria / Ajuste
+
+- [`melhoria-ajuste/consumidor-api.md`](melhoria-ajuste/consumidor-api.md) — polish de resposta HTTP
+- [`melhoria-ajuste/javadoc.md`](melhoria-ajuste/javadoc.md) — padronização de JavaDoc
+
+---
+
+## Processo (como revisar)
+
+[`processo/README.md`](processo/README.md) — inteligente, escopo REST, checklist, PR/CI, ruído.
+
+**Overlay (opcional):** [`revisao.overlay.md`](revisao.overlay.md) — stack `java-spring-esimples`
 
 ```text
-/api-validator docs/SPEC.md — escopo ampliado, validador inteligente
+/api-validator docs/SPEC.md
 ```

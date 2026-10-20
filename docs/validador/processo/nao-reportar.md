@@ -33,7 +33,7 @@ Lista de situações que **não** entram em Crítico/Importante no `/api-validat
 ## Front-end (repositório do SPA)
 
 - CSS, layout, componente React, roteamento, estado do front — **não** em Crítico/Importante.
-- Mensagem/status **definidos pela API** no diff (handler, `ApiErrorResponse`, auth) → avaliar em **Melhoria / Ajuste** ([`experiencia-consumidor-api.md`](experiencia-consumidor-api.md)), não aqui.
+- Mensagem/status **definidos pela API** no diff (handler, `ApiErrorResponse`, auth) → avaliar em **Melhoria / Ajuste** ([`../melhoria-ajuste/consumidor-api.md`](../melhoria-ajuste/consumidor-api.md)), não aqui.
 
 ## Quando algo desta lista **vira** achado
 

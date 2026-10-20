@@ -102,7 +102,7 @@ public ResponseEntity<Void> validarRemocaoSubcategoria(...) {
 ## Sub-recursos e coleções filhas
 
 - Rotas aninhadas (`/entidades/{id}/…`, `/conta-pagar/{id}/pagamentos`) delegam ao **service** do agregado ou ao service do filho — nunca repository no controller.
-- Ordem de paths e colisão com `/{id}`: [`colecao-filha-vinculada-pai.md`](colecao-filha-vinculada-pai.md), `docs/validador/escopo-e-rest.md`.
+- Ordem de paths e colisão com `/{id}`: [`colecao-filha-vinculada-pai.md`](colecao-filha-vinculada-pai.md), `docs/validador/processo/escopo-e-rest.md`.
 
 ---
 

@@ -210,7 +210,7 @@ def build_prompt(
 1. `git clone {validator_url} /tmp/cursor-api-validator-java`
 {pin_line}2. `bash /tmp/cursor-api-validator-java/install/install.sh "$(pwd)" java-spring-esimples`
 3. Confirme que existe `{agent_rel}`; leia esse arquivo **inteiro** e siga precedencia, evidencia e veredito.
-4. Use `.cursor/skills/revisao-api/SKILL.md`, `docs/validador/nao-reportar.md` e regras `EV-*` em `.cursor/rules/` quando o diff tocar o assunto.
+4. Use `.cursor/skills/revisao-api/SKILL.md`, `docs/validador/README.md`, `docs/validador/processo/nao-reportar.md` e regras `EV-*` em `.cursor/rules/` quando o diff tocar o assunto.
 5. Se o diff tiver migration: `EV-PER-006` e `docs/padrao/banco.md` — dados/integridade primeiro; SQL nao pode quebrar a aplicacao na subida.
 
 
@@ -222,7 +222,7 @@ Achado **Critico**/**Importante**: regra ou doc citada + evidencia (classe/metod
         prep = f"""Leia e siga a risca o procedimento em:
 {agent_file}
 
-Tambem use .cursor/skills/revisao-api/SKILL.md e docs/validador/nao-reportar.md quando aplicavel.
+Tambem use .cursor/skills/revisao-api/SKILL.md, docs/validador/README.md e docs/validador/processo/nao-reportar.md quando aplicavel.
 
 Cite **pelo menos dois caminhos** de arquivo do diff no relatorio (sem secao Resumo).
 """
@@ -260,10 +260,10 @@ Saida EXATAMENTE nesta ordem, com estes titulos markdown (copie literal):
 ## Importante
 ## Melhoria / Ajuste
 ## Conclusao
-Assuma front/consumidor da API. **Prioridade:** em auth/erros/validacao/listagem autenticada, varra **Critico** e **Importante** com docs/validador/erros-consumidor-critico-importante.md (loop de login, tenant, contrato quebrado, 401 vs 403, vazamento). So depois preencha **Melhoria / Ajuste** (docs/validador/experiencia-consumidor-api.md) para polish que NAO impede o usuario de concluir a tarefa. Melhoria NAO altera a Conclusao.
+Assuma front/consumidor da API. **Prioridade:** em auth/erros/validacao/listagem autenticada, varra **Critico** e **Importante** com docs/validador/critico/consumidor-api.md e docs/validador/importante/consumidor-api.md (loop de login, tenant, contrato quebrado, 401 vs 403, vazamento). So depois preencha **Melhoria / Ajuste** (docs/validador/melhoria-ajuste/consumidor-api.md) para polish que NAO impede o usuario de concluir a tarefa. Melhoria NAO altera a Conclusao.
 Regra: qualquer item em Critico ou Importante (alem de `Nenhum.`) -> ultima linha `Conclusao: NAO APROVAVEL` (nunca APROVAVEL nem COM RESSALVAS).
 So `Nenhum.` em Critico e Importante -> `Conclusao: APROVAVEL`.
-No diff em service/controller/security: comentario // ou /* dentro de metodo -> **Importante** (EV-SVC-003); metodo publico novo sem JavaDoc -> **Importante** (EV-SVC-002); JavaDoc presente mas fora do padrao (docs/validador/melhoria-javadoc-e-comentarios.md) -> **Melhoria / Ajuste**.
+No diff em service/controller/security: comentario // ou /* dentro de metodo -> **Importante** (EV-SVC-003); metodo publico novo sem JavaDoc -> **Importante** (EV-SVC-002); JavaDoc presente mas fora do padrao (docs/validador/melhoria-ajuste/javadoc.md) -> **Melhoria / Ajuste**.
 Sem achado tecnico: Critico e Importante = `Nenhum.`; Melhoria / Ajuste = `Nenhum.` ou itens de UX de API / JavaDoc.
 
 git diff --stat (referencia local do disparo):
@@ -347,7 +347,7 @@ def main() -> int:
     if spec_path.is_file():
         spec_line = (
             "Existe docs/SPEC.md na branch: modo inteligente; "
-            "escopo ampliado se a SPEC tiver Contrato HTTP (docs/validador/escopo-e-rest.md)."
+            "escopo ampliado se a SPEC tiver Contrato HTTP (docs/validador/processo/escopo-e-rest.md)."
         )
     else:
         spec_line = "Sem docs/SPEC.md na branch: gate enxuto (somente git diff vs base)."

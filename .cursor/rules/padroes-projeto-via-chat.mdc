@@ -11,7 +11,7 @@ Quando o usuário solicitar uma **regra ou padrão válido para todo o esimples-
 2. **Persistir** para não depender de repetir no chat:
    - Padrões reutilizáveis → `docs/padrao/` + `docs/padrao/README.md` no **projeto alvo**
    - Validador → `docs/validador/` (ou atualizar pacote [cursor-api-validator-java](https://github.com/SUA_ORG/cursor-api-validator-java))
-   - Checklist → `docs/validador/review-checklist-api.md`
+   - Checklist → `docs/validador/processo/review-checklist-api.md`
    - Regra `EV-*` → `.cursor/rules/*.mdc` (severidade CRÍTICO ou IMPORTANTE)
    - Fluxo do agente → `.cursor/agents/api-validator.md`, `.cursor/skills/revisao-api/SKILL.md`
    - Template de tarefa → `docs/SPEC.template.md`

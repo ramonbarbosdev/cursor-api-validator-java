@@ -28,7 +28,7 @@ O que passa a ser verdade quando estiver pronto.
 
 ## Contrato HTTP (obrigatório se a feature expõe ou consome API)
 
-Liste **cada** chamada que o front ou integrador fará. O validador usa isto no **escopo ampliado** (`docs/validador/escopo-e-rest.md`).
+Liste **cada** chamada que o front ou integrador fará. O validador usa isto no **escopo ampliado** (`docs/validador/processo/escopo-e-rest.md`).
 
 | Método | Path | Quando | Status / corpo esperado |
 |--------|------|--------|-------------------------|

@@ -1,6 +1,6 @@
 # Overlay de vizinhos — e-Simples (Java/Spring)
 
-Complementa [`docs/validador/revisao.md`](../../../../docs/validador/revisao.md) após instalar com stack `java-spring-esimples`. Copiado para `docs/validador/revisao.overlay.md` no projeto.
+Complementa [`docs/validador/processo/revisao.md`](../../../../docs/validador/processo/revisao.md) após instalar com stack `java-spring-esimples`. Copiado para `docs/validador/revisao.overlay.md` no projeto.
 
 ---
 
@@ -11,12 +11,12 @@ Fluxo de revisão: **escopo primeiro**, achados **concretos**, sem lista de melh
 ## Fluxo
 
 1. Ter **SPEC** (`docs/SPEC.md` na branch ou texto no `/api-validator`).
-2. Roteiro **validador inteligente**: [`inteligente.md`](inteligente.md).
-3. **Escopo ampliado:** [`escopo-e-rest.md`](escopo-e-rest.md).
+2. Roteiro **validador inteligente**: [`processo/inteligente.md`](processo/inteligente.md).
+3. **Escopo ampliado:** [`processo/escopo-e-rest.md`](processo/escopo-e-rest.md).
 4. `git diff` no escopo da branch (+ REST/SPEC se ampliado).
 5. Classificar tipo → escolher **um** vizinho + **um** doc (tabela abaixo).
-6. Checklist: [`review-checklist-api.md`](review-checklist-api.md).
-7. Ruído: [`nao-reportar.md`](nao-reportar.md).
+6. Checklist: [`processo/review-checklist-api.md`](processo/review-checklist-api.md).
+7. Ruído: [`processo/nao-reportar.md`](processo/nao-reportar.md).
 8. Reportar **Crítico** / **Importante** + **Conclusão** (formato do agente).
 
 ## Tipo de atividade → referência

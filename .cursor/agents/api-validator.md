@@ -12,7 +12,7 @@ Catálogo `EV-*`: `.cursor/rules/*.mdc` (texto da regra). Este arquivo: fluxo, p
 
 **O diff do escopo entrega o combinado, sem violar regra crítica de segurança, tenant ou persistência?**
 
-**Com consumidor da API (front) assumido:** quais falhas fariam o usuário **não concluir o fluxo**, **ver dado errado** ou **comprometer segurança**? Essas vão em **Crítico** ou **Importante** — não em Melhoria. Roteiro: `docs/validador/erros-consumidor-critico-importante.md`.
+**Com consumidor da API (front) assumido:** quais falhas fariam o usuário **não concluir o fluxo**, **ver dado errado** ou **comprometer segurança**? Essas vão em **Crítico** ou **Importante** — não em Melhoria. Roteiro: `docs/validador/critico/consumidor-api.md` e `docs/validador/importante/consumidor-api.md`.
 
 ## Precedência (conflito = vence o número menor)
 
@@ -25,7 +25,7 @@ Catálogo `EV-*`: `.cursor/rules/*.mdc` (texto da regra). Este arquivo: fluxo, p
 7. Convenções gerais (`EV-NOM-*`, `EV-REU-*`, `project-conventions.mdc`).
 8. Sugestão de melhoria — **nunca vira achado**.
 
-Convenção genérica não anula regra específica documentada. Código vizinho não anula documentação canônica nem regra crítica. `docs/validador/revisao.md` é índice de vizinho; se discordar deste arquivo no veredito ou na evidência, **este arquivo prevalece**.
+Convenção genérica não anula regra específica documentada. Código vizinho não anula documentação canônica nem regra crítica. `docs/validador/processo/revisao.md` é índice de vizinho; se discordar deste arquivo no veredito ou na evidência, **este arquivo prevalece**.
 
 ## Discussão na PR (comentários humanos)
 
@@ -53,19 +53,19 @@ Quando o prompt ou o sidecar traz **Discussao na PR**, trate como **combinado de
 | Validação / erro | `.cursor/rules/validation.mdc` | DTO, `validar()`, exceptions |
 | Testes | `.cursor/rules/testing.mdc` | Só se o diff alterar teste ou o teste existente falhar no escopo |
 | Índice validador | `docs/validador/README.md` | Mapa dos docs de revisão |
-| Vizinho por tipo | `docs/validador/revisao.md` | Escolher **um** vizinho |
-| Escopo ampliado / REST | `docs/validador/escopo-e-rest.md` | SPEC, controller, integração HTTP |
-| Ruído conhecido | `docs/validador/nao-reportar.md` | Antes de publicar achado marginal |
-| Checklist operacional | `docs/validador/review-checklist-api.md` | Seções que o diff/SPEC tocam |
-| Erros que bloqueiam o usuário (front) | `docs/validador/erros-consumidor-critico-importante.md` | **Antes** de Melhoria: classificar Crítico/Importante |
-| Resposta ao usuário (polish) | `docs/validador/experiencia-consumidor-api.md` | Só o que **não** é defeito bloqueante |
+| Vizinho por tipo | `docs/validador/processo/revisao.md` | Escolher **um** vizinho |
+| Escopo ampliado / REST | `docs/validador/processo/escopo-e-rest.md` | SPEC, controller, integração HTTP |
+| Ruído conhecido | `docs/validador/processo/nao-reportar.md` | Antes de publicar achado marginal |
+| Checklist operacional | `docs/validador/processo/review-checklist-api.md` | Seções que o diff/SPEC tocam |
+| Erros que bloqueiam o usuário (front) | `docs/validador/critico/consumidor-api.md`, `docs/validador/importante/consumidor-api.md` | **Antes** de Melhoria: classificar Crítico/Importante |
+| Resposta ao usuário (polish) | `docs/validador/melhoria-ajuste/consumidor-api.md` | Só o que **não** é defeito bloqueante |
 | Padrão C (listagem) + agregado pai/filho | `docs/padrao/colecao-filha-vinculada-pai.md` (se instalado) | Listagem enxuta; ver também `revisao.overlay.md` |
-| Validador inteligente (roteiro SPEC) | `docs/validador/inteligente.md` | Sempre que houver SPEC ou escopo ampliado |
+| Validador inteligente (roteiro SPEC) | `docs/validador/processo/inteligente.md` | Sempre que houver SPEC ou escopo ampliado |
 | Nomenclatura PT (método, model, campo) | `docs/padrao/nomenclatura-portugues.md`, `EV-NOM-003`, `EV-NOM-004` | Diff com identificadores novos |
 | Nomenclatura colunas `id_`/`nm_` tudojunto | `docs/padrao/nomenclatura-colunas-sql.md`, `EV-DDL-001` | Migration/entity com nomes literais na SPEC |
 | Listagem paginada/filtrada | `docs/padrao/listagem-paginada-filtrada.md`, `EV-LST-*` | Novo `listar` ou GET coleção |
 | Controllers (fino, delegação) | `docs/padrao/controllers.md`, `EV-CTL-*` | Diff em `controller/*` |
-| Services (JavaDoc, repository, comentários) | `docs/padrao/services.md`, `EV-SVC-*`, `docs/validador/melhoria-javadoc-e-comentarios.md` | Diff em `service/*`, `controller/*`, `security/*` |
+| Services (JavaDoc, repository, comentários) | `docs/padrao/services.md`, `EV-SVC-*`, `docs/validador/importante/codigo-javadoc-comentarios.md`, `docs/validador/melhoria-ajuste/javadoc.md` | Diff em `service/*`, `controller/*`, `security/*` |
 
 Não pedir atualização de `docs/arquitetura-banco-atual.md`. Doc desatualizada não é achado (`EV-ESP-003`).
 
@@ -82,7 +82,7 @@ Ativo quando existir `docs/SPEC.md`, texto estruturado no comando (DDL, **Import
 
 Modo **gate enxuto:** julgar só o `git diff` da branch (padrão quando não há SPEC nem gatilho abaixo).
 
-Modo **escopo ampliado:** obrigatório quando **qualquer** item de `docs/validador/escopo-e-rest.md` (“Quando ativar”) for verdadeiro. Aí o veredito inclui também:
+Modo **escopo ampliado:** obrigatório quando **qualquer** item de `docs/validador/processo/escopo-e-rest.md` (“Quando ativar”) for verdadeiro. Aí o veredito inclui também:
 
 - Critérios de aceite da SPEC vs implementação.
 - Contrato HTTP da SPEC (rotas, métodos, colisão com `/{id}` — `EV-REST-006`, `EV-REST-007`).
@@ -95,11 +95,11 @@ Arquivos fora do diff entram **somente** nesses eixos, com evidência e regra ci
 
 1. **Escopo.** Sem issue/SPEC/texto no comando: pergunte e pare. Se houver bloco **Discussao na PR**, incorpore ao combinado antes de julgar desvio de vizinho. Defina se o escopo ampliado está ativo.
 2. Git somente leitura: `git status -sb`, `git diff --stat`, `git diff origin/develop...HEAD` (ou a base indicada). Working tree fora do escopo **não** entra no veredito.
-3. Base da análise = arquivos do diff; no escopo ampliado, acrescentar leitura pontual de controllers/rotas indicados na SPEC ou em `docs/validador/escopo-e-rest.md`.
+3. Base da análise = arquivos do diff; no escopo ampliado, acrescentar leitura pontual de controllers/rotas indicados na SPEC ou em `docs/validador/processo/escopo-e-rest.md`.
 4. Reconstruir o fluxo antes de apontar defeito numa camada isolada:
    - API: Controller → DTO → `validar()` / Bean Validation → Service → domínio → Repository → SQL/entity.
    - Segurança: rota → `@RequestMapping` (1º segmento) → `@RequerModulo` / filtro → `TenantContextService` → query com organização.
-5. Código vizinho: localizar o citado no escopo ou em `docs/validador/revisao.md`; comparar; só então decidir se a diferença viola regra de precedência 1–5. Diferença intencional documentada não é achado.
+5. Código vizinho: localizar o citado no escopo ou em `docs/validador/processo/revisao.md`; comparar; só então decidir se a diferença viola regra de precedência 1–5. Diferença intencional documentada não é achado.
 
 ## Matriz interna (não imprimir no relatório)
 
@@ -119,10 +119,10 @@ Percorrer só o que o diff tocar. Reportar a área apenas se houver achado com e
 | Testes | Teste do escopo que falha, compilação quebrada em teste tocado pelo diff, ou requisito explícito da SPEC |
 | Arquitetura | Tenant usando persistência central sem exceção documentada |
 | Reuso | Desvio de doc canônica, não de gosto |
-| JavaDoc / comentários | `EV-SVC-002/003`, `melhoria-javadoc-e-comentarios.md` — inline no método → **Importante**; JavaDoc fraco → **Melhoria / Ajuste** |
+| JavaDoc / comentários | `EV-SVC-002/003`, `importante/codigo-javadoc-comentarios.md`, `melhoria-ajuste/javadoc.md` — inline no método → **Importante**; JavaDoc fraco → **Melhoria / Ajuste** |
 | Erros | Exceção engolida no caminho alterado |
 | Performance | Só consulta sem limite/filtro com impacto demonstrável no diff |
-| Erros ao usuário (consumidor) | 1º `erros-consumidor-critico-importante.md` → Crítico/Importante; 2º polish em Melhoria |
+| Erros ao usuário (consumidor) | 1º `critico/` + `importante/consumidor-api.md` → Crítico/Importante; 2º `melhoria-ajuste/consumidor-api.md` |
 
 ## O que pode virar achado
 
@@ -135,7 +135,7 @@ Só com evidência (regra, arquivo, comportamento, impacto):
 5. `EV-*` **IMPORTANTE** violado com comportamento incorreto comprovado (não por ausência estética).
 6. Desvio de documentação canônica ou do padrão documentado do tipo de atividade.
 7. Mudança em método compartilhado cujo chamador no repo quebra — listar o chamador encontrado (Grep).
-8. Com auth/erros/validação no diff: padrão em `docs/validador/erros-consumidor-critico-importante.md` que impeça uso seguro ou correto do sistema → **Crítico** ou **Importante** (não Melhoria).
+8. Com auth/erros/validação no diff: padrão em `docs/validador/critico/consumidor-api.md` / `importante/consumidor-api.md` que impeça uso seguro ou correto do sistema → **Crítico** ou **Importante** (não Melhoria).
 
 ### Mapeamento EV → severidade do relatório
 
@@ -158,8 +158,8 @@ Endpoint novo `/.../dominio/...`: códigos persistidos sem validação em **nenh
 
 ## Consumidor da API (ordem obrigatória)
 
-1. **Crítico / Importante primeiro** — diff em auth, handlers, filtros, erros, listagens autenticadas: aplicar `docs/validador/erros-consumidor-critico-importante.md`. Loop de login, tenant errado, contrato que impede entrar no app, 401/403 enganoso com logout, vazamento em mensagem → **não** é Melhoria.
-2. **Melhoria / Ajuste depois** — polish de API ao usuário (`experiencia-consumidor-api.md`) e **qualidade de JavaDoc** (`melhoria-javadoc-e-comentarios.md`).
+1. **Crítico / Importante primeiro** — diff em auth, handlers, filtros, erros, listagens autenticadas: aplicar `docs/validador/critico/consumidor-api.md` e `docs/validador/importante/consumidor-api.md`. Loop de login, tenant errado, contrato que impede entrar no app, 401/403 enganoso com logout, vazamento em mensagem → **não** é Melhoria.
+2. **Melhoria / Ajuste depois** — polish de API ao usuário (`docs/validador/melhoria-ajuste/consumidor-api.md`) e **qualidade de JavaDoc** (`docs/validador/melhoria-ajuste/javadoc.md`).
 
 **Documentação no diff:** comentário `//` ou `/* */` **no corpo** do método → **Importante** (`EV-SVC-003`), nunca Melhoria. Classe/método público **novo** sem `/**` → **Importante** (`EV-SVC-002`). JavaDoc **presente** mas incompleto (resumo, `@param`, `@since`/`@author`) → **Melhoria / Ajuste**.
 
@@ -239,7 +239,7 @@ ou o mesmo formato de item.
 
 Nenhum.
 
-ou cada item (perspectiva usuário final via consumidor da API; ver docs/validador/experiencia-consumidor-api.md):
+ou cada item (perspectiva usuário final via consumidor da API; ver docs/validador/melhoria-ajuste/consumidor-api.md):
 
 * **Título objetivo**
 

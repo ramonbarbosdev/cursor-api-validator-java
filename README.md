@@ -12,7 +12,7 @@ Destinado a ser **instalado** no repositório da aplicação (ex.: `esimples-api
 | `.cursor/commands/api-validator.md` | Comando Cursor `/api-validator` |
 | `.cursor/skills/revisao-api/` | Skill operacional |
 | `.cursor/rules/*.mdc` | Regras `EV-*` (REST, tenant, DDL, controller, service, …) |
-| `docs/validador/` | Roteiro inteligente, escopo REST, checklist, ruído |
+| `docs/validador/` | Hub por severidade (`critico/`, `importante/`, `melhoria-ajuste/`) + `processo/` |
 | `docs/padrao/` | Padrões genéricos (banco, PT, DTO, controller, service, listagem) |
 | `docs/SPEC.template.md` | Template de `docs/SPEC.md` na branch |
 | `stacks/java-spring-esimples/` | Overlay exemplo (financeiro e-Simples: Padrão C, vizinhos) |
@@ -68,7 +68,7 @@ Copia também `stacks/java-spring-esimples/docs/padrao/*` e `revisao.overlay.md`
 
 ## Validação a partir de Pull Request
 
-Fluxo completo: [`docs/validador/review-por-pr.md`](docs/validador/review-por-pr.md).
+Fluxo completo: [`docs/validador/processo/review-por-pr.md`](docs/validador/processo/review-por-pr.md).
 
 Na VPS (repositório da API já clonado, `gh` autenticado):
 
@@ -83,7 +83,7 @@ Abra `.api-validator-review/pr-430-prompt.md` no Cursor ou envie ao agente na nu
 
 ### Automático em cada push na PR (GitHub Actions)
 
-No **esimples-api**: workflow `.github/workflows/api-validator-pr.yml` + secret `CURSOR_API_KEY`. Usa `scripts/ci-api-validator.py` deste repositório. Detalhes: `docs/validador/review-por-pr.md`.
+No **esimples-api**: workflow `.github/workflows/api-validator-pr.yml` + secret `CURSOR_API_KEY`. Usa `scripts/ci-api-validator.py` deste repositório. Detalhes: `docs/validador/processo/review-por-pr.md`.
 
 **Runner self-hosted no Windows:** instale o WSL antes (venv + `cursor-sdk`):
 
@@ -91,13 +91,13 @@ No **esimples-api**: workflow `.github/workflows/api-validator-pr.yml` + secret 
 .\scripts\install-wsl-prereqs.ps1
 ```
 
-Guia: [`docs/validador/wsl-windows-runner.md`](docs/validador/wsl-windows-runner.md).
+Guia: [`docs/validador/processo/wsl-windows-runner.md`](docs/validador/processo/wsl-windows-runner.md).
 
 ## Personalização no projeto alvo
 
 | O que | Onde no projeto |
 |-------|-----------------|
-| Vizinhos por módulo | `docs/validador/revisao.md` ou `revisao.overlay.md` |
+| Vizinhos por módulo | `docs/validador/processo/revisao.md` ou `revisao.overlay.md` |
 | Padrões só da empresa | `docs/padrao/` (merge com install) |
 | Banco / permissões | `docs/arquitetura-banco-atual.md`, `docs/migrations-permissoes.md` (projeto) |
 | Regras extras | `.cursor/rules/*.mdc` locais |
