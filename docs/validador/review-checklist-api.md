@@ -45,6 +45,7 @@ Uso com `/api-validator` e escopo ampliado ([`escopo-e-rest.md`](escopo-e-rest.m
 ## Persistência (se houver migration no diff)
 
 - [ ] Migration nova; não reescrever `V*` aplicada.
+- [ ] Dados e integridade (`EV-PER-006`): SQL não quebra startup (Flyway/`validate`); NOT NULL/FK/UK/CHECK com backfill ou default; sem DROP/TRUNCATE de negócio sem plano — [`banco.md`](../padrao/banco.md).
 - [ ] Tríade: SQL ↔ entity ↔ DTO/`validar()`.
 - [ ] DDL alinhada a [`banco.md`](../padrao/banco.md) (pasta tenant/central, `id_organizacao`, sem editar `V*` antigo).
 - [ ] Colunas e campos novos em português com prefixos (`EV-NOM-003`, [`nomenclatura-portugues.md`](../padrao/nomenclatura-portugues.md)).

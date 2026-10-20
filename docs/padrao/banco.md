@@ -27,6 +27,42 @@ Validador: `.cursor/rules/persistence.mdc`, `ev-ddl-nomenclatura.mdc`, `multi-te
 
 ---
 
+## Prioridade: dados existentes e integridade (`EV-PER-006`)
+
+O padrão do projeto coloca **dados já persistidos** e **integridade** acima de atalhos de DDL. A migration **não pode quebrar a aplicação** na subida nem deixar o banco em estado inconsistente com o que o código espera.
+
+### Por que importa
+
+- Flyway roda no **startup**: SQL que falha → deploy parado (tenant e/ou central).
+- Após o Flyway, Hibernate **`validate`** compara entity com schema; desalinhamento também impede subida.
+- Ambientes com **dados reais** não podem ser tratados como banco vazio.
+
+### Regras de revisão (diff com `V*` novo)
+
+| Situação no SQL | Julgamento típico |
+|-----------------|-------------------|
+| `ADD COLUMN ... NOT NULL` sem `DEFAULT` e sem `UPDATE`/backfill prévio em linhas existentes | **Crítico** — falha em tabela populada |
+| `DROP` / `TRUNCATE` / `DELETE` em massa em dado de negócio sem plano na SPEC/atividade | **Crítico** |
+| FK, UK ou `CHECK` que rejeita registros já existentes sem normalização antes | **Crítico** ou **Importante** (com evidência de órfãos) |
+| Mudança de tipo / `RENAME` sem conversão e sem entity/código no núcleo da atividade | **Crítico** se quebra subida ou leitura |
+| DDL só em ambiente “verde” (assume tabela vazia) em módulo já em produção | **Importante** ou **Crítico** conforme impacto |
+
+### Padrão preferido (expand-first)
+
+1. **Adicionar** coluna/tabela (nullable ou com `DEFAULT` seguro para legado).
+2. **Backfill** na mesma migration ou em `V*` seguinte (`UPDATE … WHERE …`).
+3. **Restringir** depois: `SET NOT NULL`, FK, UK, `CHECK` — quando não houver linha violadora.
+4. Manter **tríade** migration ↔ entity ↔ validação no fluxo de escrita alinhada ao schema **final**.
+
+### Integridade
+
+- FK e UK devem refletir relações reais do domínio; não “fechar” constraint em dados sujos sem etapa de correção.
+- Tenant: não enfraquecer `id_organizacao` / isolamento por organização em nome de DDL mais simples (`EV-MTN-*` prevalece).
+
+Detalhe de nomenclatura e tríade: seções abaixo e [`nomenclatura-colunas-sql.md`](nomenclatura-colunas-sql.md).
+
+---
+
 ## Schemas
 
 - PostgreSQL com **schemas por módulo** (`public`, `financeiro`, `contrato`, …) conforme o projeto.
@@ -67,6 +103,7 @@ Service: `@Transactional`; central: `centralTransactionManager`. Sem TX no contr
 
 ## Checklist (diff com migration)
 
+- [ ] `EV-PER-006`: subida segura (Flyway + `validate`); backfill/default antes de NOT NULL/FK/UK restritivos
 - [ ] `V*` novo no pasta certa (tenant vs central)
 - [ ] `id_organizacao` + índice se tenant
 - [ ] Entity alinhada; tríade com DTO

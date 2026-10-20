@@ -30,6 +30,10 @@ Se existir [`revisao.overlay.md`](revisao.overlay.md) no projeto, **mesclar** co
 | Permissões / central | doc do projeto | migration `db/central`, testes de rota |
 | Multi-tenant | `.cursor/rules/multi-tenant.mdc` | `TenantContextService`, queries |
 
+## Migration — dados primeiro
+
+Diff com `V*.sql`: conferir `EV-PER-006` e seção **Prioridade: dados** em [`banco.md`](../padrao/banco.md) antes de nomenclatura estética.
+
 ## Tríade migration
 
 1. SQL  

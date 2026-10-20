@@ -20,7 +20,7 @@ Quality gate do diff. Com **escopo ampliado**, inclui SPEC, REST e testes confor
 7. Regras `EV-*` em `.cursor/rules/*.mdc` só nas áreas tocadas pelo diff/SPEC.
 8. Vizinho: `docs/validador/revisao.md` + `revisao.overlay.md` se existir.
 9. Fluxo: controller → DTO/`validar()` → service → repository → SQL.
-10. DDL literal: migration + `@Column` + DTO vs SPEC (`EV-DDL-001`).
+10. Migration: dados/integridade e subida segura (`EV-PER-006`, `docs/padrao/banco.md`); depois DDL literal + `@Column` + DTO vs SPEC (`EV-DDL-001`).
 11. Domínio na SPEC: service implementa estratégia descrita.
 12. REST: paths da SPEC vs controllers (`EV-REST-006`).
 13. Testes tocados: `mvn -q -Dtest=... test`.

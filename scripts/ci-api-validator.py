@@ -211,6 +211,7 @@ def build_prompt(
 {pin_line}2. `bash /tmp/cursor-api-validator-java/install/install.sh "$(pwd)" java-spring-esimples`
 3. Confirme que existe `{agent_rel}`; leia esse arquivo **inteiro** e siga precedencia, evidencia e veredito.
 4. Use `.cursor/skills/revisao-api/SKILL.md`, `docs/validador/nao-reportar.md` e regras `EV-*` em `.cursor/rules/` quando o diff tocar o assunto.
+5. Se o diff tiver migration: `EV-PER-006` e `docs/padrao/banco.md` — dados/integridade primeiro; SQL nao pode quebrar a aplicacao na subida.
 
 
 Cite **pelo menos dois caminhos** de arquivo do diff no relatorio (em Critico/Importante ou na Conclusao), ex. `src/main/java/.../Foo.java`.

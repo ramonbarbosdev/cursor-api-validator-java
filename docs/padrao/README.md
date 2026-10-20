@@ -7,7 +7,7 @@ Precedência: **SPEC da branch** → regras `EV-*` CRÍTICAS → docs desta past
 | Documento | Uso |
 |-----------|-----|
 | [`nomenclatura-portugues.md`](nomenclatura-portugues.md) | PT em método, model, coluna/campo |
-| [`banco.md`](banco.md) | Flyway, schemas, tenant, constraints, tríade |
+| [`banco.md`](banco.md) | Flyway, dados/integridade (`EV-PER-006`), schemas, tenant, tríade |
 | [`nomenclatura-colunas-sql.md`](nomenclatura-colunas-sql.md) | `id_` / `nm_<tudojunto>`, tríade DDL |
 | [`dtos.md`](dtos.md) | Request/Response/Filter |
 | [`controllers.md`](controllers.md) | Controller fino → service |

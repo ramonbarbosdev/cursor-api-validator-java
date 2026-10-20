@@ -110,7 +110,7 @@ Percorrer só o que o diff tocar. Reportar a área apenas se houver achado com e
 | Repository | Filtro de organização na query tenant |
 | Multi-tenant | Contexto de org em leitura e escrita |
 | Segurança | Rota nova sem alinhamento de permissão **demonstrado** |
-| Persistência | Schema certo, FK, não editar/apagar `V*.sql` versionada **no diff do escopo** |
+| Persistência | Schema certo, FK, dados/integridade (`EV-PER-006`, `docs/padrao/banco.md`), não editar/apagar `V*.sql` versionada **no diff do escopo** |
 | Transação | Escrita tenant vs `centralTransactionManager` quando há repo central |
 | Testes | Teste do escopo que falha, compilação quebrada em teste tocado pelo diff, ou requisito explícito da SPEC |
 | Arquitetura | Tenant usando persistência central sem exceção documentada |
@@ -144,6 +144,8 @@ Elevação única: apagar ou reescrever `V*.sql` já versionada **no diff do esc
 `EV-TST-*`: falta de `@WebMvcTest` ou de teste novo **não** é achado. Achado de teste só se um teste existente no escopo falha, ou se o escopo exige o cenário e o código do diff o deixa sem proteção **e** isso muda comportamento (não “ficou sem teste”).
 
 Tríade de migration nova: coluna ↔ entity ↔ validação no **caminho de persistência** (`@Size` **ou** `validar()` **ou** service). Falta de `@Size` com o mesmo limite já em `validar()` não é achado. Falta de `CHECK` na SQL não é achado se a API valida.
+
+Migration (`EV-PER-006`): prioridade a **dados existentes** e **integridade** — SQL que falha no Flyway ou deixa schema incompatível com entity/JPA **quebra a aplicação**; achado **Crítico** com o trecho SQL e o cenário (tabela populada, NOT NULL sem backfill, DROP/FK/UK em dados legados, etc.). Padrão expand-first em `docs/padrao/banco.md`.
 
 Endpoint novo `/.../dominio/...`: códigos persistidos sem validação em **nenhuma** camada do fluxo é achado **MÉDIO**. Se `validar()` ou o service já rejeita, não reportar.
 
