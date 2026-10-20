@@ -16,6 +16,11 @@ API_VERSION = "2022-11-28"
 REVIEW_MARKER = "<!-- review -->"
 
 
+def _new_comment_each_run() -> bool:
+    raw = os.environ.get("API_VALIDATOR_NEW_COMMENT_EACH_RUN", "").strip().lower()
+    return raw in ("1", "true", "yes", "on")
+
+
 def verify_webhook_signature(body: bytes, signature_header: str | None, secret: str) -> bool:
     if not secret:
         return False
@@ -74,13 +79,14 @@ def upsert_review_comment(repo: str, pr_number: int, body: str, token: str) -> N
     if REVIEW_MARKER not in body:
         body = f"{REVIEW_MARKER}\n{body}"
     issue_url = f"https://api.github.com/repos/{repo}/issues/{pr_number}/comments"
-    comments = api_request("GET", issue_url, token) or []
-    for c in comments:
-        if REVIEW_MARKER in (c.get("body") or ""):
-            cid = c["id"]
-            patch_url = f"https://api.github.com/repos/{repo}/issues/comments/{cid}"
-            api_request("PATCH", patch_url, token, {"body": body})
-            return
+    if not _new_comment_each_run():
+        comments = api_request("GET", issue_url, token) or []
+        for c in comments:
+            if REVIEW_MARKER in (c.get("body") or ""):
+                cid = c["id"]
+                patch_url = f"https://api.github.com/repos/{repo}/issues/comments/{cid}"
+                api_request("PATCH", patch_url, token, {"body": body})
+                return
     api_request("POST", issue_url, token, {"body": body})
 
 

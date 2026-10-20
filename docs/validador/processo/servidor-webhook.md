@@ -41,6 +41,9 @@ cd cursor-api-validator-java
 
 Teste: `http://localhost:8765/health` → `ok`
 
+Fila e PR em execucao: `http://localhost:8765/status` (JSON: `current`, `pending`, `recent`).
+No terminal do webhook, linhas `[queue]` e `[webhook]` mostram enfileiramento, fase e conclusao.
+
 ## 4. Expor na internet (ngrok, como no SIPEC)
 
 ```bash

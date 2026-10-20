@@ -10,6 +10,21 @@ def _env(name: str, default: str = "") -> str:
     return os.environ.get(name, default).strip()
 
 
+def load_pr_review_env_file(path: Path | None = None) -> bool:
+    """Carrega scripts/.env.pr-review no processo (idempotente)."""
+    if path is None:
+        path = Path(__file__).resolve().parent / ".env.pr-review"
+    if not path.is_file():
+        return False
+    for raw in path.read_text(encoding="utf-8").splitlines():
+        line = raw.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        name, value = line.split("=", 1)
+        os.environ[name.strip()] = value.strip()
+    return True
+
+
 @dataclass(frozen=True)
 class PrReviewConfig:
     app_dir: Path

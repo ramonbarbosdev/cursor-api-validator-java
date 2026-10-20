@@ -15,7 +15,7 @@ SCRIPT_DIR = Path(__file__).resolve().parent
 if str(SCRIPT_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPT_DIR))
 
-from pr_review_config import PrReviewConfig  # noqa: E402
+from pr_review_config import PrReviewConfig, load_pr_review_env_file  # noqa: E402
 from pr_review_gate import should_validate  # noqa: E402
 from pr_review_github import (  # noqa: E402
     fetch_pr,
@@ -24,6 +24,15 @@ from pr_review_github import (  # noqa: E402
     upsert_review_comment,
 )
 from pr_review_state import get_validated_sha, load_state, mark_validated  # noqa: E402
+
+
+def _phase(name: str, pr_number: int) -> None:
+    try:
+        from pr_review_queue import get_queue  # noqa: WPS433
+
+        get_queue().set_phase(name, pr_number)
+    except Exception:
+        pass
 
 
 def _run(cmd: list[str], *, cwd: Path, env: dict[str, str] | None = None) -> None:
@@ -76,6 +85,7 @@ def _resolve_repo(cfg: PrReviewConfig) -> str:
 
 
 def run_validation(cfg: PrReviewConfig, pr_number: int, *, force: bool = False) -> int:
+    _phase("buscando PR no GitHub", pr_number)
     token = resolve_token()
     repo = _resolve_repo(cfg)
     pr = fetch_pr(repo, pr_number, token)
@@ -96,13 +106,20 @@ def run_validation(cfg: PrReviewConfig, pr_number: int, *, force: bool = False) 
 
     state = load_state(cfg.state_path)
     if not force and sha and get_validated_sha(state, pr_number) == sha:
-        print(f"PR #{pr_number}: SHA {sha[:12]} ja validado.")
+        print(
+            f"PR #{pr_number}: SHA {sha[:12]} ja validado — pulando "
+            f"(webhook nao repete; use --force ou novo commit).",
+            flush=True,
+        )
+        _phase("pulando (SHA ja validado)", pr_number)
         return 0
 
     print(f"PR #{pr_number}: validando ({reason}) @ {sha[:12]}…")
 
+    _phase("checkout", pr_number)
     _checkout_pr(cfg.app_dir, repo, pr_number, pr, token)
 
+    _phase("install validador", pr_number)
     install_ps1 = cfg.validator_root / "install" / "install.ps1"
     install_sh = cfg.validator_root / "install" / "install.sh"
     if sys.platform == "win32" and install_ps1.is_file():
@@ -139,6 +156,7 @@ def run_validation(cfg: PrReviewConfig, pr_number: int, *, force: bool = False) 
     validate = cfg.validator_root / "scripts" / "validate-api-validator-report.py"
     wsl_ci = cfg.validator_root / "scripts" / "ci-api-validator-cloud-wsl.ps1"
 
+    _phase("agente (cloud/local)", pr_number)
     if sys.platform == "win32" and wsl_ci.is_file() and env.get("CURSOR_VALIDATOR_RUNTIME") == "cloud":
         _run(
             [
@@ -159,8 +177,10 @@ def run_validation(cfg: PrReviewConfig, pr_number: int, *, force: bool = False) 
     else:
         _run([sys.executable, str(ci)], cwd=cfg.app_dir, env=env)
 
+    _phase("validando relatorio", pr_number)
     _run([sys.executable, str(validate)], cwd=cfg.app_dir, env=env)
 
+    _phase("publicando comentario na PR", pr_number)
     report_path = cfg.app_dir / "api-validator-report.md"
     if not report_path.is_file():
         print("Relatorio nao gerado.", file=sys.stderr)
@@ -181,6 +201,7 @@ def main() -> int:
     parser.add_argument("--force", action="store_true", help="Ignora SHA ja validado")
     args = parser.parse_args()
     try:
+        load_pr_review_env_file()
         cfg = PrReviewConfig.from_env()
         return run_validation(cfg, args.pr, force=args.force)
     except subprocess.CalledProcessError as e:
